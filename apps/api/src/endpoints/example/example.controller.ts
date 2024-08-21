@@ -1,9 +1,7 @@
 import { Example } from "@libs/entities";
 import { ExampleService } from "@libs/services";
-import { Body, Controller, DefaultValuePipe, Get, NotFoundException, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
+import { Controller, DefaultValuePipe, Get, NotFoundException, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { EventLog } from "./entities/event.log";
-
 
 @Controller()
 @ApiTags('example')
@@ -45,14 +43,5 @@ export class ExampleController {
 		}
 
 		return result;
-	}
-
-	@Post("/examples/events-webhook")
-	async eventsWebhook(
-		@Body() body: EventLog[],
-	): Promise<void> {
-		body.forEach(async (eventLog) => {
-			console.log(eventLog);
-		});
 	}
 }

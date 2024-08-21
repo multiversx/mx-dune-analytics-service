@@ -4,6 +4,7 @@ import { UserService } from './user/user.service';
 import { DatabaseModule } from '@libs/database';
 import { ExampleService } from './example/example.service';
 import { DynamicModuleUtils } from '@libs/common';
+import { EventsService } from './events';
 
 @Global()
 @Module({
@@ -15,11 +16,13 @@ import { DynamicModuleUtils } from '@libs/common';
     TokenService,
     UserService,
     ExampleService,
+    EventsService,
   ],
   exports: [
     TokenService,
     UserService,
     ExampleService,
+    EventsService,
   ],
 })
 export class ServicesModule { }

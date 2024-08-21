@@ -4,6 +4,7 @@ import { AuthModule } from "./auth/auth.module";
 import { TokenModule } from "./token/token.module";
 import { UserModule } from "./user/user.module";
 import { ExampleModule } from "./example/example.module";
+import { EventsModule } from "./events/events.module";
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ExampleModule } from "./example/example.module";
     TokenModule,
     UserModule,
     ExampleModule,
+    EventsModule,
   ],
   providers: [
     DynamicModuleUtils.getNestJsApiConfigService(),
