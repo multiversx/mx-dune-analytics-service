@@ -1,0 +1,22 @@
+// creat un endpoint care accepta EventLog[] ca si request body. pe baza lui, contorizat pt fiecare adresa amount of Token A, amount of Token B
+
+export class EventLog {
+  constructor(init?: Partial<EventLog>) {
+    Object.assign(this, init);
+  }
+  eventId: string = '';
+  txHash: string = '';
+  shardId: number = 0;
+  timestamp: number = 0;
+  address: string = '';
+  identifier: string = '';
+  topics: string[] = [];
+  data: string = '';
+  additionalData: string[] = [];
+  txOrder: number = 0;
+  eventOrder: number = 0;
+}
+
+// de adaugat 2/3 teste in care sa fie simulate event-uri de SWAP
+// exemplu de loguri:
+// https://explorer.multiversx.com/transactions/8d794c725cc69ae0705b0b173480aae108c72a9c78091f0d594dd933aaf76870/logs
