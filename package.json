@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@multiversx/sdk-core": "^13.2.1",
+    "@multiversx/sdk-exchange": "^0.2.20",
     "@multiversx/sdk-nestjs-auth": "3.7.1",
     "@multiversx/sdk-nestjs-cache": "3.7.1",
     "@multiversx/sdk-nestjs-common": "3.7.1",

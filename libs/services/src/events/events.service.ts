@@ -1,7 +1,8 @@
-import { AddressUtils } from "@multiversx/sdk-nestjs-common";
 import { Injectable } from "@nestjs/common";
 import { EventLog } from "apps/api/src/endpoints/events/entities/event.log";
-
+import moment from "moment"
+import BigNumber from "bignumber.js"
+import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange"
 interface InnerDictionary {
     [key: string]: BigInt;
 }
@@ -12,56 +13,106 @@ interface OuterDictionary {
 @Injectable()
 export class EventsService {
     addresses: OuterDictionary = {}
-    private decodeEventESDTTransfer(eventLog: EventLog) {
-        eventLog.topics[0] = Buffer.from(eventLog.topics[0], 'base64').toString();
-        eventLog.topics[2] = parseInt(Buffer.from(eventLog.topics[2], 'base64').toString('hex'), 16).toString();
-        eventLog.topics[3] = AddressUtils.bech32Encode(Buffer.from(eventLog.topics[3], 'base64').toString('hex'));
+    wegld = {
+        "name": "WrappedEGLD",
+        "identifier": "WEGLD-bd4d79",
+        "price": 28.440809330902482
     }
+
+    htm = {
+        "name": "Hatom",
+        "identifier": "HTM-f51d55",
+        "price": 0.7723039095181816
+    }
+
+    months = [
+        "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie",
+        "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"
+    ];
 
     constructor(
         // private readonly cacheService: CacheService,
     ) { }
 
     public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
-        eventsLog.map(event => this.decodeEventESDTTransfer(event));
+        // eventsLog.map(event => this.decodeEventESDTTransfer(event));
+        let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
         eventsLog.forEach(async (eventLog) => {
-
-            if (eventLog.identifier !== "ESDTTransfer") {
-                return;
+            switch (eventLog.identifier) {
+                case "addLiquidity":
+                    currentEvent = new AddLiquidityEvent(eventLog);
+                    break;
+                case "removeLiquidity":
+                    currentEvent = new RemoveLiquidityEvent(eventLog);
+                    break;
+                default:
+                    return;
             }
+            // console.log(currentEvent);
+            console.log(currentEvent.getTimestamp());
+            const date = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0)
+            const formatedDate = date.format("DD MMMM YYYY HH:mm [UTC]")
 
-            // this.decodeEventESDTTransfer(eventLog);
-            console.log(eventLog);
-            // addresses[eventLog.address] = {
-            //     eventLog.identifier: eventLog.topics[2]
-            // };
-            const receiver = eventLog.topics[3];
-            const sender = eventLog.address;
-            const identifier = eventLog.topics[0];
-            const value = eventLog.topics[2];
+            // const bigNum = currentEvent.getLiquidityPoolSupply();
+            // console.log(moment().format(date.toDateString()))
+            const htmReservePrice = (currentEvent.getFirstTokenReserves()?.toNumber() ?? 0) * this.htm.price;
+            const wegldReservePrice = (currentEvent.getSecondTokenReserves()?.toNumber() ?? 0) * this.wegld.price;
 
-            if (sender === eventsLog[0].address && receiver === eventsLog[0].topics[1])
+            console.log(`${formatedDate} -> total liquidity $${new BigNumber(htmReservePrice + wegldReservePrice).shiftedBy(-18).toFixed()}`);
 
-                if (!this.addresses[sender]) {
-                    this.addresses[sender] = {};
-                }
-            if (!this.addresses[receiver]) {
-                this.addresses[receiver] = {};
-            }
-            if (!this.addresses[sender][identifier]) {
-                this.addresses[sender][identifier] = BigInt(0);
-            }
-            if (!this.addresses[receiver][identifier]) {
-                this.addresses[receiver][identifier] = BigInt(0);
-            }
-            let senderAmount = this.addresses[sender][identifier];
-            let receiverAmount = this.addresses[receiver][identifier];
-            this.addresses[sender][identifier] = senderAmount.valueOf() - BigInt(value).valueOf();
-            this.addresses[receiver][identifier] = receiverAmount.valueOf() + BigInt(value).valueOf();
+            // console.log(new BigNumber(htmReserve + wegldReserve).shiftedBy(-18).toFixed());
+
 
         });
 
-        console.log(this.addresses);
 
     }
+
+    // private getStructure(): StructType {
+    //     return new StructType('LiquidityEvent', [
+    //         new FieldDefinition('caller', '', new AddressType()),
+    //         new FieldDefinition('firstTokenID', '', new TokenIdentifierType()),
+    //         new FieldDefinition('firstTokenAmount', '', new BigUIntType()),
+    //         new FieldDefinition('secondTokenID', '', new TokenIdentifierType()),
+    //         new FieldDefinition('secondTokenAmount', '', new BigUIntType()),
+    //         new FieldDefinition('lpTokenID', '', new TokenIdentifierType()),
+    //         new FieldDefinition('lpTokenAmount', '', new BigUIntType()),
+    //         new FieldDefinition('liquidityPoolSupply', '', new BigUIntType()),
+    //         new FieldDefinition('firstTokenReserves', '', new BigUIntType()),
+    //         new FieldDefinition('secondTokenReserves', '', new BigUIntType()),
+    //         new FieldDefinition('block', '', new U64Type()),
+    //         new FieldDefinition('epoch', '', new U64Type()),
+    //         new FieldDefinition('timestamp', '', new U64Type()),
+    //     ]);
 }
+// private decodeEvent(additionalData: string): void {
+//     const data = Buffer.from(additionalData, 'base64');
+//     const codec = new BinaryCodec();
+//     const eventStruct = this.getStructure();
+//     const [decoded] = codec.decodeNested(data, eventStruct);
+//     console.log(decoded.valueOf());
+//     // console.log(decoded)
+//     // const htmReserve = decoded.valueOf().firstTokenReserves.valueOf() * this.htm.price;
+//     // const wegldReserve = decoded.valueOf().secondTokenReserves.valueOf() * this.wegld.price;
+//     // console.log(decoded.valueOf().firstTokenReserves.valueOf() * this.htm.price)
+//     // console.log(decoded.valueOf().secondTokenReserves.valueOf() * this.wegld.price)
+//     // console.log('wegld reserve ' + wegldReserve)
+//     // console.log('htm reserve ' + htmReserve)
+//     // console.log(wegldReserve + htmReserve)
+//     // console.log((decoded.valueOf().liquidityPoolSupply.valueOf() as BigUIntType).toString())
+//     // let date = new Date(decoded.valueOf().timestamp * 1000);
+//     const date = moment.unix(decoded.valueOf().timestamp)
+//     const formatedDate = date.format("DD MMMM YYYY HH:mm [UTC]")
+
+//     // let day = date.getUTCDate();
+//     // let month = date.getUTCMonth(); // Reține: luniile încep de la 0 în JavaScript
+//     // let year = date.getUTCFullYear();
+//     // let hours = date.getUTCHours();
+//     // let minutes = date.getUTCMinutes();
+//     // let value = new BigUIntType().
+//     const bigNum = decoded.valueOf().liquidityPoolSupply as BigNumber;
+//     // console.log(moment().format(date.toDateString()))
+//     console.log(`${formatedDate} -> total liquidity $${bigNum.shiftedBy(-18).toFixed()}`);
+// }
+//}// moment.js
+// 100. 000 000 000 000 000 000
