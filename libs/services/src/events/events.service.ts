@@ -55,14 +55,16 @@ export class EventsService {
 
             // const bigNum = currentEvent.getLiquidityPoolSupply();
             // console.log(moment().format(date.toDateString()))
-            const htmReservePrice = (currentEvent.getFirstTokenReserves()?.toNumber() ?? 0) * this.htm.price;
-            const wegldReservePrice = (currentEvent.getSecondTokenReserves()?.toNumber() ?? 0) * this.wegld.price;
+            const htmPrice = new BigNumber(this.htm.price);
+            const wegldPrice = new BigNumber(this.wegld.price);
 
-            console.log(`${formatedDate} -> total liquidity $${new BigNumber(htmReservePrice + wegldReservePrice).shiftedBy(-18).toFixed()}`);
+            const htmReserve = currentEvent.getFirstTokenReserves() ?? new BigNumber(0);
+            const wegldReserve = currentEvent.getSecondTokenReserves() ?? new BigNumber(0);
 
-            // console.log(new BigNumber(htmReserve + wegldReserve).shiftedBy(-18).toFixed());
+            const htmReservePrice = htmReserve.multipliedBy(htmPrice)
+            const wegldReservePrice = wegldReserve.multipliedBy(wegldPrice);
 
-
+            console.log(`${formatedDate} -> total liquidity $${(htmReservePrice.plus(wegldReservePrice)).shiftedBy(-18).toFixed()}`);
         });
 
 
