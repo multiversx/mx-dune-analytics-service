@@ -4,6 +4,7 @@ import moment from "moment";
 import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
 import { createObjectCsvWriter } from 'csv-writer';
+import axios from 'axios';
 
 interface InnerDictionary {
     [key: string]: BigInt;
@@ -12,11 +13,17 @@ interface InnerDictionary {
 interface OuterDictionary {
     [key: string]: InnerDictionary;
 }
+
+interface TokenPrice {
+    time: string;
+    price: string;
+}
+
 @Injectable()
 export class EventsService {
     addresses: OuterDictionary = {}
-    firstTokenPrices: Array<{}> = [];
-    secondTokenPrices: Array<{}> = [];
+    firstTokenPrices: Array<TokenPrice> = [];
+    secondTokenPrices: Array<TokenPrice> = [];
 
     csvWriter = createObjectCsvWriter({
         path: 'out.csv',
@@ -34,12 +41,15 @@ export class EventsService {
     constructor(
         // private readonly cacheService: CacheService,
     ) { 
-
+        axios.get<Array<TokenPrice>>('https://data-api.multiversx.com/v1/history/xexchange/HTM-f51d55/last_30d?type=price')
+            .then((response) => {this.firstTokenPrices = response.data});
+        axios.get<Array<TokenPrice>>('https://data-api.multiversx.com/v1/history/xexchange/WEGLD-bd4d79/last_30d?type=price')
+            .then((response) => {this.secondTokenPrices = response.data});
     }
 
     public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
-        
+
         for (const eventLog of eventsLog) {
             switch (eventLog.identifier) {
                 case "addLiquidity":
@@ -79,10 +89,11 @@ export class EventsService {
     }
 
     private computeLiquidty(firstTokenReserves: BigNumber, secondTokenReserves: BigNumber): BigNumber {
-        /// TODO: fetch prices of tokens
-        
-        const firstTokenReservePrice = firstTokenReserves.multipliedBy(this.htm.price);
-        const secondTokenReservePrice = secondTokenReserves.multipliedBy(this.wegld.price);
+        const firstTokenPrice = this.firstTokenPrices.find((element) => element.time === this.lastDate.format("YYYY-MM-DD"))?.price ?? 0;
+        const secondTokenPrice = this.secondTokenPrices.find((element) => element.time === this.lastDate.format("YYYY-MM-DD"))?.price ?? 0;
+
+        const firstTokenReservePrice = firstTokenReserves.multipliedBy(firstTokenPrice);
+        const secondTokenReservePrice = secondTokenReserves.multipliedBy(secondTokenPrice);
         return firstTokenReservePrice.plus(secondTokenReservePrice).shiftedBy(-18);
     }
 }
