@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { EventLog } from "apps/api/src/endpoints/events/entities/event.log";
-import moment from "moment"
-import BigNumber from "bignumber.js"
-import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange"
+import moment from "moment";
+import BigNumber from "bignumber.js";
+import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
+import { createObjectCsvWriter } from 'csv-writer';
+
 interface InnerDictionary {
     [key: string]: BigInt;
 }
@@ -13,31 +15,32 @@ interface OuterDictionary {
 @Injectable()
 export class EventsService {
     addresses: OuterDictionary = {}
-    wegld = {
-        "name": "WrappedEGLD",
-        "identifier": "WEGLD-bd4d79",
-        "price": 28.440809330902482
-    }
+    firstTokenPrices: Array<{}> = [];
+    secondTokenPrices: Array<{}> = [];
 
-    htm = {
-        "name": "Hatom",
-        "identifier": "HTM-f51d55",
-        "price": 0.7723039095181816
-    }
-
-    months = [
-        "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie",
-        "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"
-    ];
+    csvWriter = createObjectCsvWriter({
+        path: 'out.csv',
+        header: [
+            {id: 'date', title: 'Date'},
+            {id: 'liquidity', title: 'Liquidity'}
+        ],
+        append: true
+    });
+    
+    lastFirstTokenReserves: BigNumber = new BigNumber(0);
+    lastSecondTokenReserves: BigNumber = new BigNumber(0);
+    lastDate: moment.Moment = moment.unix(0);
 
     constructor(
         // private readonly cacheService: CacheService,
-    ) { }
+    ) { 
+
+    }
 
     public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
-        // eventsLog.map(event => this.decodeEventESDTTransfer(event));
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
-        eventsLog.forEach(async (eventLog) => {
+        
+        for (const eventLog of eventsLog) {
             switch (eventLog.identifier) {
                 case "addLiquidity":
                     currentEvent = new AddLiquidityEvent(eventLog);
@@ -48,73 +51,38 @@ export class EventsService {
                 default:
                     return;
             }
-            // console.log(currentEvent);
-            console.log(currentEvent.getTimestamp());
             const date = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0)
-            const formatedDate = date.format("DD MMMM YYYY HH:mm [UTC]")
 
-            // const bigNum = currentEvent.getLiquidityPoolSupply();
-            // console.log(moment().format(date.toDateString()))
-            const htmPrice = new BigNumber(this.htm.price);
-            const wegldPrice = new BigNumber(this.wegld.price);
+            if (!this.lastDate.isSame(moment.unix(0))) {
+                const diff = this.computeHoursDifference(date, this.lastDate);
 
-            const htmReserve = currentEvent.getFirstTokenReserves() ?? new BigNumber(0);
-            const wegldReserve = currentEvent.getSecondTokenReserves() ?? new BigNumber(0);
+                for (let i = 0; i < diff; i++) {
+                    const liquidity = this.computeLiquidty(this.lastFirstTokenReserves, this.lastSecondTokenReserves);
+                    await this.csvWriter.writeRecords([{date: this.lastDate.add(1, 'hour').format("DD MMMM YYYY HH:00 [UTC]"), liquidity: liquidity}]);
+                }
+            }
 
-            const htmReservePrice = htmReserve.multipliedBy(htmPrice)
-            const wegldReservePrice = wegldReserve.multipliedBy(wegldPrice);
-
-            console.log(`${formatedDate} -> total liquidity $${(htmReservePrice.plus(wegldReservePrice)).shiftedBy(-18).toFixed()}`);
-        });
-
-
+            this.lastFirstTokenReserves = currentEvent.getFirstTokenReserves() ?? new BigNumber(0);
+            this.lastSecondTokenReserves = currentEvent.getSecondTokenReserves() ?? new BigNumber(0);
+            this.lastDate = date;
+        }
     }
 
-    // private getStructure(): StructType {
-    //     return new StructType('LiquidityEvent', [
-    //         new FieldDefinition('caller', '', new AddressType()),
-    //         new FieldDefinition('firstTokenID', '', new TokenIdentifierType()),
-    //         new FieldDefinition('firstTokenAmount', '', new BigUIntType()),
-    //         new FieldDefinition('secondTokenID', '', new TokenIdentifierType()),
-    //         new FieldDefinition('secondTokenAmount', '', new BigUIntType()),
-    //         new FieldDefinition('lpTokenID', '', new TokenIdentifierType()),
-    //         new FieldDefinition('lpTokenAmount', '', new BigUIntType()),
-    //         new FieldDefinition('liquidityPoolSupply', '', new BigUIntType()),
-    //         new FieldDefinition('firstTokenReserves', '', new BigUIntType()),
-    //         new FieldDefinition('secondTokenReserves', '', new BigUIntType()),
-    //         new FieldDefinition('block', '', new U64Type()),
-    //         new FieldDefinition('epoch', '', new U64Type()),
-    //         new FieldDefinition('timestamp', '', new U64Type()),
-    //     ]);
-}
-// private decodeEvent(additionalData: string): void {
-//     const data = Buffer.from(additionalData, 'base64');
-//     const codec = new BinaryCodec();
-//     const eventStruct = this.getStructure();
-//     const [decoded] = codec.decodeNested(data, eventStruct);
-//     console.log(decoded.valueOf());
-//     // console.log(decoded)
-//     // const htmReserve = decoded.valueOf().firstTokenReserves.valueOf() * this.htm.price;
-//     // const wegldReserve = decoded.valueOf().secondTokenReserves.valueOf() * this.wegld.price;
-//     // console.log(decoded.valueOf().firstTokenReserves.valueOf() * this.htm.price)
-//     // console.log(decoded.valueOf().secondTokenReserves.valueOf() * this.wegld.price)
-//     // console.log('wegld reserve ' + wegldReserve)
-//     // console.log('htm reserve ' + htmReserve)
-//     // console.log(wegldReserve + htmReserve)
-//     // console.log((decoded.valueOf().liquidityPoolSupply.valueOf() as BigUIntType).toString())
-//     // let date = new Date(decoded.valueOf().timestamp * 1000);
-//     const date = moment.unix(decoded.valueOf().timestamp)
-//     const formatedDate = date.format("DD MMMM YYYY HH:mm [UTC]")
+    private computeHoursDifference(currentDate: moment.Moment, previousDate: moment.Moment): number {
+        let diff = currentDate.diff(previousDate, 'hours');
 
-//     // let day = date.getUTCDate();
-//     // let month = date.getUTCMonth(); // Reține: luniile încep de la 0 în JavaScript
-//     // let year = date.getUTCFullYear();
-//     // let hours = date.getUTCHours();
-//     // let minutes = date.getUTCMinutes();
-//     // let value = new BigUIntType().
-//     const bigNum = decoded.valueOf().liquidityPoolSupply as BigNumber;
-//     // console.log(moment().format(date.toDateString()))
-//     console.log(`${formatedDate} -> total liquidity $${bigNum.shiftedBy(-18).toFixed()}`);
-// }
-//}// moment.js
-// 100. 000 000 000 000 000 000
+        if (previousDate.minutes() > currentDate.minutes()) {
+            diff++;
+        }
+
+        return diff;
+    }
+
+    private computeLiquidty(firstTokenReserves: BigNumber, secondTokenReserves: BigNumber): BigNumber {
+        /// TODO: fetch prices of tokens
+        
+        const firstTokenReservePrice = firstTokenReserves.multipliedBy(this.htm.price);
+        const secondTokenReservePrice = secondTokenReserves.multipliedBy(this.wegld.price);
+        return firstTokenReservePrice.plus(secondTokenReservePrice).shiftedBy(-18);
+    }
+}

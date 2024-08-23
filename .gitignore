@@ -47,3 +47,4 @@ lerna-debug.log*
 # Environment
 .env
 .env.custom
+out.csv
