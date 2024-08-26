@@ -59,7 +59,7 @@ export class EventsService {
                     currentEvent = new RemoveLiquidityEvent(eventLog);
                     break;
                 default:
-                    return;
+                    continue;
             }
             const date = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0)
 
