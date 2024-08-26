@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { EventLog } from "apps/api/src/endpoints/events/entities/event.log";
+import { EventLog } from "apps/api/src/endpoints/events/entities";
 import moment from "moment";
 import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
 import { createObjectCsvWriter } from 'csv-writer';
 // import axios from 'axios';
 import { DataService } from "../data";
+import { CsvWriter } from "csv-writer/src/lib/csv-writer";
+import { ObjectMap } from "csv-writer/src/lib/lang/object";
 
 interface InnerDictionary {
     [key: string]: BigInt;
@@ -22,11 +24,13 @@ interface OuterDictionary {
 
 @Injectable()
 export class EventsService {
-    addresses: OuterDictionary = {}
+    addresses: OuterDictionary = {};
 
     lastFirstTokenReserves: { [key: string]: BigNumber } = {};
     lastSecondTokenReserves: { [key: string]: BigNumber } = {};
     lastDate: { [key: string]: moment.Moment } = {};
+
+    csvWriters: { [key: string]: CsvWriter<ObjectMap<any>> } = {};
 
     constructor(
         // private readonly cacheService: CacheService,
@@ -55,16 +59,22 @@ export class EventsService {
             const firstTokenId = currentEvent.getFirstToken()?.tokenID ?? "";
             const secondTokenId = currentEvent.getSecondToken()?.tokenID ?? "";
 
-            const csvWriter = createObjectCsvWriter({
-                path: `${firstTokenId}_${secondTokenId}.csv`,
-                header: [
-                    { id: 'date', title: 'Date' },
-                    { id: 'liquidity', title: 'Liquidity' }
-                ],
-                append: true
-            });
+            let csvWriter = null;
+            if (!this.csvWriters[`${firstTokenId}_${secondTokenId}`]) {
+                csvWriter = createObjectCsvWriter({
+                    path: `${firstTokenId}_${secondTokenId}.csv`,
+                    header: [
+                        { id: 'date', title: 'Date' },
+                        { id: 'liquidity', title: 'Liquidity' },
+                    ],
+                    append: true,
+                });
+            } else {
+                csvWriter = this.csvWriters[`${firstTokenId}_${secondTokenId}`];
+            }
 
-            const eventDate = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0)
+
+            const eventDate = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0);
 
             if (this.lastDate[`${firstTokenId}_${secondTokenId}`]) {
                 const diff = this.computeHoursDifference(eventDate, this.lastDate[`${firstTokenId}_${secondTokenId}`]);

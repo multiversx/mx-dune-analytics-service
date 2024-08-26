@@ -17,9 +17,7 @@ export class DataService {
 
     constructor(
         private readonly cachingService: CacheService,
-    ) {
-
-    }
+    ) { }
 
     async getTokenPrice(tokenId: string, date: moment.Moment): Promise<BigNumber> {
         return await this.cachingService.getOrSet(

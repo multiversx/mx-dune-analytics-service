@@ -16,6 +16,6 @@ export class EventsController {
     async eventsWebhook(
         @Body() body: EventsLog,
     ): Promise<void> {
-        return this.eventsService.eventsWebhook(body.events);
+        await this.eventsService.eventsWebhook(body.events);
     }
 }

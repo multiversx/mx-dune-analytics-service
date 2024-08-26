@@ -46,5 +46,5 @@ export class EventsLog {
   }
 
   @ApiProperty({ type: [EventLog] })
-  events: EventLog[] = []
+  events: EventLog[] = [];
 }
