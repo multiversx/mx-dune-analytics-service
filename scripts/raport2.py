@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Replace 'data.csv' with your actual file path
-file_path = 'HTM-f51d55_WEGLD-bd4d79.csv'
+file_path = 'UTK-2f80e9_WEGLD-bd4d79.csv'
 
 # Read the CSV file without header, and assign column names
 df = pd.read_csv(file_path, header=None, names=['Datetime', 'Value'])

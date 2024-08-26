@@ -15,4 +15,11 @@ export class CacheInfo {
     key: "examples",
     ttl: Constants.oneHour(),
   };
+
+  static TokenPrice(tokenId: string, date: moment.Moment) {
+    return {
+      key: `${tokenId}-${date}`,
+      ttl: Constants.oneMinute(),
+    }
+  }
 }
