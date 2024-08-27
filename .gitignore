@@ -47,4 +47,6 @@ lerna-debug.log*
 # Environment
 .env
 .env.custom
+.env.mainnet
+/scripts/insertCsv.ts
 out_csv/

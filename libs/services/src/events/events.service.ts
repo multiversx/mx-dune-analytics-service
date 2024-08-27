@@ -3,11 +3,11 @@ import { EventLog } from "apps/api/src/endpoints/events/entities";
 import moment from "moment";
 import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
-import { createObjectCsvWriter } from 'csv-writer';
+// import { createObjectCsvWriter } from 'csv-writer';
 import { DataService } from "../data";
 import { CsvWriter } from "csv-writer/src/lib/csv-writer";
 import { ObjectMap } from "csv-writer/src/lib/lang/object";
-import * as fs from 'fs';
+// import * as fs from 'fs';
 
 interface InnerDictionary {
     [key: string]: BigInt;
@@ -17,6 +17,7 @@ interface OuterDictionary {
     [key: string]: InnerDictionary;
 }
 
+type CsvRecords = Record<string, [string]>
 @Injectable()
 export class EventsService {
     addresses: OuterDictionary = {};
@@ -26,10 +27,10 @@ export class EventsService {
     lastDate: { [key: string]: moment.Moment } = {};
 
     csvWriters: { [key: string]: CsvWriter<ObjectMap<any>> } = {};
-
+    csvRecords: CsvRecords = {};
     constructor(
         private readonly dataService: DataService,
-    ) {}
+    ) { }
 
     public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
@@ -48,22 +49,25 @@ export class EventsService {
             const firstTokenId = currentEvent.getFirstToken()?.tokenID ?? "";
             const secondTokenId = currentEvent.getSecondToken()?.tokenID ?? "";
 
-            let csvWriter = null;
-            if (!this.csvWriters[`${firstTokenId}_${secondTokenId}`]) {
-                csvWriter = createObjectCsvWriter({
-                    path: `out_csv/${firstTokenId}_${secondTokenId}.csv`,
-                    header: [
-                        { id: 'date', title: 'Date' },
-                        { id: 'liquidity', title: 'Liquidity' },
-                    ],
-                    append: true,
-                });
-                this.csvWriters[`${firstTokenId}_${secondTokenId}`] = csvWriter;
-                if (!fs.existsSync(`${firstTokenId}_${secondTokenId}.csv`)) {
-                    await csvWriter.writeRecords([{ date: 'Timestamp', liquidity: 'VolumeUSD' }]);
-                }
-            } else {
-                csvWriter = this.csvWriters[`${firstTokenId}_${secondTokenId}`];
+            // let csvWriter = null;
+            // if (!this.csvWriters[`${firstTokenId}_${secondTokenId}`]) {
+            //     csvWriter = createObjectCsvWriter({
+            //         path: `out_csv/${firstTokenId}_${secondTokenId}.csv`,
+            //         header: [
+            //             { id: 'timestamp', title: 'timestamp' },
+            //             { id: 'volumeusd', title: 'volumeusd' },
+            //         ],
+            //         append: true,
+            //     });
+            //     this.csvWriters[`${firstTokenId}_${secondTokenId}`] = csvWriter;
+            //     if (!fs.existsSync(`out_csv/${firstTokenId}_${secondTokenId}.csv`)) {
+            //         await csvWriter.writeRecords([{ timestamp: 'timestamp', volumeusd: 'volumeusd' }]);
+            //     }
+            // } else {
+            //     csvWriter = this.csvWriters[`${firstTokenId}_${secondTokenId}`];
+            // }
+            if (!this.csvRecords[`${firstTokenId}_${secondTokenId}`]) {
+                this.csvRecords[`${firstTokenId}_${secondTokenId}`] = ["timestamp,volumeusd"];
             }
 
             const eventDate = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0);
@@ -72,8 +76,10 @@ export class EventsService {
                 const diff = this.computeHoursDifference(eventDate, this.lastDate[`${firstTokenId}_${secondTokenId}`]);
 
                 for (let i = 0; i < diff; i++) {
+                    this.lastDate[`${firstTokenId}_${secondTokenId}`].add(1, 'hour').startOf('hour');
                     const liquidity = await this.computeLiquidty(this.lastFirstTokenReserves[`${firstTokenId}_${secondTokenId}`], this.lastSecondTokenReserves[`${firstTokenId}_${secondTokenId}`], firstTokenId, secondTokenId, this.lastDate[`${firstTokenId}_${secondTokenId}`]);
-                    await csvWriter.writeRecords([{ date: this.lastDate[`${firstTokenId}_${secondTokenId}`].add(1, 'hour').startOf('hour').unix(), liquidity: liquidity.decimalPlaces(4) }]);
+                    this.csvRecords[`${firstTokenId}_${secondTokenId}`].push(`${this.lastDate[`${firstTokenId}_${secondTokenId}`].format('YYYY-MM-DD HH:mm:ss.SSS')},${liquidity.decimalPlaces(4)}`);
+                    // await csvWriter.writeRecords([{ timestamp: this.lastDate[`${firstTokenId}_${secondTokenId}`].format('YYYY-MM-DD HH:mm:ss.SSS'), volumeusd: liquidity.decimalPlaces(4) }]);
                 }
             }
 
@@ -99,7 +105,7 @@ export class EventsService {
 
         const firstTokenPrecision = await this.dataService.getTokenPrecision(firstTokenId);
         const secondTokenPrecision = await this.dataService.getTokenPrecision(secondTokenId);
-        
+
         const firstTokenReservePrice = firstTokenReserves.multipliedBy(firstTokenPrice).shiftedBy(-firstTokenPrecision);
         const secondTokenReservePrice = secondTokenReserves.multipliedBy(secondTokenPrice).shiftedBy(-secondTokenPrecision);
 

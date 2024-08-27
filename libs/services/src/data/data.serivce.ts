@@ -28,7 +28,7 @@ export class DataService {
     }
 
     async getTokenPriceRaw(tokenId: string, date: moment.Moment): Promise<BigNumber> {
-        if (tokenId.indexOf('USDC')) {
+        if (tokenId.startsWith('USDC')) {
             return (await axios.get<TokenPrice>(`https://data-api.multiversx.com/v1/quotes/cex/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
         }
         return (await axios.get<TokenPrice>(`https://data-api.multiversx.com/v1/quotes/xexchange/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
