@@ -4,10 +4,10 @@ import moment from "moment";
 import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
 import { createObjectCsvWriter } from 'csv-writer';
-// import axios from 'axios';
 import { DataService } from "../data";
 import { CsvWriter } from "csv-writer/src/lib/csv-writer";
 import { ObjectMap } from "csv-writer/src/lib/lang/object";
+import * as fs from 'fs';
 
 interface InnerDictionary {
     [key: string]: BigInt;
@@ -16,11 +16,6 @@ interface InnerDictionary {
 interface OuterDictionary {
     [key: string]: InnerDictionary;
 }
-
-// interface TokenPrice {
-//     time: string;
-//     price: string;
-// }
 
 @Injectable()
 export class EventsService {
@@ -33,17 +28,11 @@ export class EventsService {
     csvWriters: { [key: string]: CsvWriter<ObjectMap<any>> } = {};
 
     constructor(
-        // private readonly cacheService: CacheService,
         private readonly dataService: DataService,
-    ) {
-
-    }
+    ) {}
 
     public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
-
-        // const firstTokenPrices = (await axios.get<Array<TokenPrice>>(`https://data-api.multiversx.com/v1/history/xexchange/${firstToken}/last_30d?type=price`)).data;
-        // const secondTokenPrices = (await axios.get<Array<TokenPrice>>(`https://data-api.multiversx.com/v1/history/xexchange/${secondToken}/last_30d?type=price`)).data;
 
         for (const eventLog of eventsLog) {
             switch (eventLog.identifier) {
@@ -62,17 +51,20 @@ export class EventsService {
             let csvWriter = null;
             if (!this.csvWriters[`${firstTokenId}_${secondTokenId}`]) {
                 csvWriter = createObjectCsvWriter({
-                    path: `${firstTokenId}_${secondTokenId}.csv`,
+                    path: `out_csv/${firstTokenId}_${secondTokenId}.csv`,
                     header: [
                         { id: 'date', title: 'Date' },
                         { id: 'liquidity', title: 'Liquidity' },
                     ],
                     append: true,
                 });
+                this.csvWriters[`${firstTokenId}_${secondTokenId}`] = csvWriter;
+                if (!fs.existsSync(`${firstTokenId}_${secondTokenId}.csv`)) {
+                    await csvWriter.writeRecords([{ date: 'Timestamp', liquidity: 'VolumeUSD' }]);
+                }
             } else {
                 csvWriter = this.csvWriters[`${firstTokenId}_${secondTokenId}`];
             }
-
 
             const eventDate = moment.unix(currentEvent.getTimestamp()?.toNumber() ?? 0);
 
@@ -81,7 +73,7 @@ export class EventsService {
 
                 for (let i = 0; i < diff; i++) {
                     const liquidity = await this.computeLiquidty(this.lastFirstTokenReserves[`${firstTokenId}_${secondTokenId}`], this.lastSecondTokenReserves[`${firstTokenId}_${secondTokenId}`], firstTokenId, secondTokenId, this.lastDate[`${firstTokenId}_${secondTokenId}`]);
-                    await csvWriter.writeRecords([{ date: this.lastDate[`${firstTokenId}_${secondTokenId}`].add(1, 'hour').format("DD MMMM YYYY HH:00 [UTC]"), liquidity: liquidity }]);
+                    await csvWriter.writeRecords([{ date: this.lastDate[`${firstTokenId}_${secondTokenId}`].add(1, 'hour').startOf('hour').unix(), liquidity: liquidity.decimalPlaces(4) }]);
                 }
             }
 
@@ -105,9 +97,12 @@ export class EventsService {
         const firstTokenPrice = await this.dataService.getTokenPrice(firstTokenId, date);
         const secondTokenPrice = await this.dataService.getTokenPrice(secondTokenId, date);
 
-        const firstTokenReservePrice = firstTokenReserves.multipliedBy(firstTokenPrice);
-        const secondTokenReservePrice = secondTokenReserves.multipliedBy(secondTokenPrice);
+        const firstTokenPrecision = await this.dataService.getTokenPrecision(firstTokenId);
+        const secondTokenPrecision = await this.dataService.getTokenPrecision(secondTokenId);
+        
+        const firstTokenReservePrice = firstTokenReserves.multipliedBy(firstTokenPrice).shiftedBy(-firstTokenPrecision);
+        const secondTokenReservePrice = secondTokenReserves.multipliedBy(secondTokenPrice).shiftedBy(-secondTokenPrecision);
 
-        return firstTokenReservePrice.plus(secondTokenReservePrice).shiftedBy(-18);
+        return firstTokenReservePrice.plus(secondTokenReservePrice);
     }
 }

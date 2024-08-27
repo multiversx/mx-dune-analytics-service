@@ -22,4 +22,12 @@ export class CacheInfo {
       ttl: Constants.oneHour(),
     };
   }
+
+  static TokenPrecision(tokenId: string) {
+    return {
+      key: `precision-${tokenId}`,
+      ttl: Constants.oneMonth(),
+    };
+  }
 }
+
