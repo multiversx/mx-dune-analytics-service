@@ -7,6 +7,7 @@ import { DynamicModuleUtils } from '@libs/common';
 import { EventsService } from './events';
 import { DataService } from './data';
 import { DuneSenderService } from './dune-sender';
+import { CsvRecordsService } from './records';
 
 @Global()
 @Module({
@@ -21,6 +22,7 @@ import { DuneSenderService } from './dune-sender';
     EventsService,
     DataService,
     DuneSenderService,
+    CsvRecordsService,
   ],
   exports: [
     TokenService,
@@ -29,6 +31,7 @@ import { DuneSenderService } from './dune-sender';
     EventsService,
     DataService,
     DuneSenderService,
+    CsvRecordsService,
   ],
 })
 export class ServicesModule { }

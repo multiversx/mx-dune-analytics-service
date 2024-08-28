@@ -22,7 +22,7 @@ export class DataService {
     async getTokenPrice(tokenId: string, date: moment.Moment): Promise<BigNumber> {
         return await this.cachingService.getOrSet(
             CacheInfo.TokenPrice(tokenId, date).key,
-            async () => this.getTokenPriceRaw(tokenId, date),
+            async () => await this.getTokenPriceRaw(tokenId, date),
             CacheInfo.TokenPrice(tokenId, date).ttl
         );
     }
