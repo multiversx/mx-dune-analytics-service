@@ -18,6 +18,8 @@ libs:
       enum: [devnet, testnet, mainnet]
     urls:
       api: string
+      dataApiCex: string
+      dataApiXexchange: string
     database:
       host: string
       port: integer
@@ -34,6 +36,10 @@ libs:
     redis:
       host: string
       port: integer
+    features:
+      dune:
+        namespace: string
+        apiKey: string
     nativeAuth:
       maxExpirySeconds:
         type: integer

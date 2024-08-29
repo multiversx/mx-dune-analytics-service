@@ -81,4 +81,16 @@ export class CsvRecordsService {
     getKeys(): string[] {
         return Object.keys(this.csvRecords);
     }
+
+    async formatRecord(csvFileName: string): Promise<[string, number]>{
+        let resultString: string = "timestamp,volumeusd\n";
+        let length: number = 0;
+
+        await Locker.lock(`update-record-${csvFileName}`, async () => {
+            length = this.csvRecords[csvFileName].length;
+            resultString += this.csvRecords[csvFileName].join("\n");
+        }, false);
+
+        return [resultString, length];
+    }
 }

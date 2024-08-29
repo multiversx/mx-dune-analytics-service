@@ -17,12 +17,7 @@ export class DuneSenderService {
     @Cron(CronExpression.EVERY_MINUTE)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
-        // const keys = this.csvRecordsService.getKeys();
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
-
-        // for (const key of keys) {
-        //     records[key] = await this.csvRecordsService.getAndDeleteRecord(key);
-        // }
 
         await this.sendCsvToDune(records);
     }
@@ -32,8 +27,7 @@ export class DuneSenderService {
             if (lines.length === 0) {
                 continue;
             }
-            let resultString = "timestamp,volumeusd\n";
-            resultString += lines.join("\n");
+            const [resultString, linesLength] = await this.csvRecordsService.formatRecord(csvFileName);
 
             const csvData: Buffer = Buffer.from(resultString, 'utf-8');
 
@@ -41,12 +35,8 @@ export class DuneSenderService {
             const isRecordSent = await this.insertCsvDataToTable(csvFileName.toLowerCase().replace(/-/g, "_"), csvData);
 
             if (isRecordSent) {
-                await this.csvRecordsService.deleteFirstRecords(csvFileName, records[csvFileName].length);
+                await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
             }
-
-            // if (!isRecordSent) {
-            //     await this.csvRecordsService.unshiftRecord(csvFileName, records[csvFileName]);
-            // }
         }
     }
 
