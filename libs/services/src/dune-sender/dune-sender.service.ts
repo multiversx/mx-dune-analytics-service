@@ -1,12 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { Lock } from "@multiversx/sdk-nestjs-common";
+import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/client-sdk";
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 
 @Injectable()
 export class DuneSenderService {
+    private readonly logger = new OriginLogger(DuneSenderService.name);
+    
     constructor(
         private readonly csvRecordsService: CsvRecordsService,
         private readonly appConfigService: AppConfigService,
@@ -31,7 +33,7 @@ export class DuneSenderService {
 
             const csvData: Buffer = Buffer.from(resultString, 'utf-8');
 
-            console.log("starting sending data from file " + csvFileName);
+            this.logger.log("starting sending data from file " + csvFileName);
             const isRecordSent = await this.insertCsvDataToTable(csvFileName.toLowerCase().replace(/-/g, "_"), csvData);
 
             if (isRecordSent) {
@@ -65,7 +67,7 @@ export class DuneSenderService {
                 data,
                 content_type: ContentType.Csv, 
             });
-            console.log(result);
+            this.logger.log(result);
         } catch (error) {
             Logger.error(error);
             if (error instanceof DuneError) {
