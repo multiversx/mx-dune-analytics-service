@@ -1,38 +1,60 @@
 import { Injectable } from '@nestjs/common';
 import { Locker } from "@multiversx/sdk-nestjs-common";
+import { CacheService } from '@multiversx/sdk-nestjs-cache';
+import { CacheInfo } from '@libs/common';
+
 @Injectable()
 export class CsvRecordsService {
     private csvRecords: Record<string, string[]> = {};
 
+    constructor(
+        private readonly cachingService: CacheService,
+    ) {
+        this.init();
+    }
+
+    private async init() {
+        const keys = await this.cachingService.getKeys("csv-records-*");
+        for (const key of keys) {
+            this.csvRecords[key.removePrefix("csv-records-")] = await this.cachingService.get(key) ?? [];
+        }
+    }
+
     async deleteRecord(csvFileName: string) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
-
+            this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
             delete this.csvRecords[csvFileName];
+        }, false);
+    }
 
+    async deleteFirstRecords(csvFileName: string, length: number) {
+        await Locker.lock(`update-record-${csvFileName}`, async () => {
+            this.csvRecords[csvFileName] = this.csvRecords[csvFileName].slice(length);
+            this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName], CacheInfo.CSVRecord(csvFileName).ttl);
         }, false);
     }
 
     async pushRecord(csvFileName: string, data: string[]) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
-
             if (!this.csvRecords[csvFileName]) {
+                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
             } else {
+                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].push(...data);
             }
-
         }, false);
     }
 
     async unshiftRecord(csvFileName: string, data: string[]) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
-
             if (!this.csvRecords[csvFileName]) {
+                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
             } else {
+                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data.concat(this.csvRecords[csvFileName]), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].unshift(...data);
             }
-
         }, false);
     }
 
@@ -49,6 +71,7 @@ export class CsvRecordsService {
 
         await Locker.lock(`update-record-${csvFileName}`, async () => {
             record = this.csvRecords[csvFileName] ?? [];
+            this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
             delete this.csvRecords[csvFileName];
         }, false);
 

@@ -29,5 +29,12 @@ export class CacheInfo {
       ttl: Constants.oneMonth(),
     };
   }
+
+  static CSVRecord(csvFileName: string) {
+    return {
+      key: `csv-records-${csvFileName}`,
+      ttl: Constants.oneDay(),
+    };
+  }
 }
 

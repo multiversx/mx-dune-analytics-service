@@ -4,6 +4,7 @@ import { Injectable } from "@nestjs/common";
 import BigNumber from "bignumber.js";
 import axios from 'axios';
 import moment from "moment";
+import { AppConfigService } from "apps/api/src/config/app-config.service";
 
 interface TokenPrice {
     name: string;
@@ -14,9 +15,9 @@ interface TokenPrice {
 
 @Injectable()
 export class DataService {
-
     constructor(
         private readonly cachingService: CacheService,
+        private readonly appConfigService: AppConfigService,
     ) { }
 
     async getTokenPrice(tokenId: string, date: moment.Moment): Promise<BigNumber> {
@@ -29,16 +30,15 @@ export class DataService {
 
     async getTokenPriceRaw(tokenId: string, date: moment.Moment): Promise<BigNumber> {
         if (tokenId.startsWith('USDC')) {
-            return (await axios.get<TokenPrice>(`https://data-api.multiversx.com/v1/quotes/cex/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+            return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiCexUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
         }
-        return (await axios.get<TokenPrice>(`https://data-api.multiversx.com/v1/quotes/xexchange/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+        return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiXexchangeUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
     }
-
 
     async getTokenPrecision(tokenId: string): Promise<number> {
         return await this.cachingService.getOrSet(
             CacheInfo.TokenPrecision(tokenId).key,
-            async () => (await axios.get(`https://api.multiversx.com/tokens/${tokenId}?fields=decimals`)).data.decimals,
+            async () => (await axios.get(`${this.appConfigService.getApiUrl()}/tokens/${tokenId}?fields=decimals`)).data.decimals,
             CacheInfo.TokenPrecision(tokenId).ttl
         );
     }

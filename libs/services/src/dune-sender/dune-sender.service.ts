@@ -3,24 +3,26 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { Lock } from "@multiversx/sdk-nestjs-common";
 import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/client-sdk";
 import { CsvRecordsService } from "../records";
+import { AppConfigService } from "apps/api/src/config/app-config.service";
+
 @Injectable()
 export class DuneSenderService {
     constructor(
-        // private readonly cachingService: CacheService,
         private readonly csvRecordsService: CsvRecordsService,
+        private readonly appConfigService: AppConfigService,
     ) { }
 
-    client = new DuneClient("");;
+    client = new DuneClient(this.appConfigService.getDuneApiKey());
 
     @Cron(CronExpression.EVERY_MINUTE)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
-        const keys = this.csvRecordsService.getKeys();
-        const records: Record<string, string[]> = {};
+        // const keys = this.csvRecordsService.getKeys();
+        const records: Record<string, string[]> = this.csvRecordsService.getRecords();
 
-        for (const key of keys) {
-            records[key] = await this.csvRecordsService.getAndDeleteRecord(key);
-        }
+        // for (const key of keys) {
+        //     records[key] = await this.csvRecordsService.getAndDeleteRecord(key);
+        // }
 
         await this.sendCsvToDune(records);
     }
@@ -31,63 +33,61 @@ export class DuneSenderService {
                 continue;
             }
             let resultString = "timestamp,volumeusd\n";
-            lines.forEach((line) => {
-                resultString += line + "\n";
-            });
+            resultString += lines.join("\n");
 
             const csvData: Buffer = Buffer.from(resultString, 'utf-8');
 
             console.log("starting sending data from file " + csvFileName);
             const isRecordSent = await this.insertCsvDataToTable(csvFileName.toLowerCase().replace(/-/g, "_"), csvData);
 
-            if (!isRecordSent) {
-                await this.csvRecordsService.unshiftRecord(csvFileName, records[csvFileName]);
+            if (isRecordSent) {
+                await this.csvRecordsService.deleteFirstRecords(csvFileName, records[csvFileName].length);
             }
+
+            // if (!isRecordSent) {
+            //     await this.csvRecordsService.unshiftRecord(csvFileName, records[csvFileName]);
+            // }
         }
     }
 
-    async createTableIfNeeded(tableName: string): Promise<boolean> {
+    async createTable(tableName: string): Promise<boolean> {
         try {
-            const result = await this.client.table.create({
-                namespace: "stefanmvx",
+            await this.client.table.create({
+                namespace: this.appConfigService.getDuneNamespace(),
                 table_name: tableName,
                 schema: [
                     { "name": "timestamp", "type": ColumnType.Varchar },
                     { "name": "volumeusd", "type": ColumnType.Double },
                 ],
             });
-            console.log(result);
         } catch (error) {
             Logger.error(error);
             return false;
         }
-
         return true;
     }
 
     async insertCsvDataToTable(tableName: string, data: Buffer): Promise<boolean> {
         try {
             const result = await this.client.table.insert({
-                namespace: "stefanmvx",
+                namespace: this.appConfigService.getDuneNamespace(),
                 table_name: tableName,
                 data,
-                content_type: ContentType.Csv, // or ContentType.Json
+                content_type: ContentType.Csv, 
             });
             console.log(result);
         } catch (error) {
             Logger.error(error);
             if (error instanceof DuneError) {
                 if (error.message.includes("This table was not found")) {
-                    const isTableCreated = await this.createTableIfNeeded(tableName);
+                    const isTableCreated = await this.createTable(tableName);
                     if (isTableCreated) {
                         return await this.insertCsvDataToTable(tableName, data);
                     }
                 }
             }
-
             return false;
         }
-
         return true;
     }
 }

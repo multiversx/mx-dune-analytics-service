@@ -1,7 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-
-
 export class EventLog {
   constructor(init?: Partial<EventLog>) {
     Object.assign(this, init);
