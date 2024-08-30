@@ -8,7 +8,7 @@ import { AppConfigService } from "apps/api/src/config/app-config.service";
 @Injectable()
 export class DuneSenderService {
     private readonly logger = new OriginLogger(DuneSenderService.name);
-    
+
     constructor(
         private readonly csvRecordsService: CsvRecordsService,
         private readonly appConfigService: AppConfigService,
@@ -16,7 +16,7 @@ export class DuneSenderService {
 
     client = new DuneClient(this.appConfigService.getDuneApiKey());
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_5_MINUTES)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -44,7 +44,7 @@ export class DuneSenderService {
 
     async createTable(tableName: string): Promise<boolean> {
         try {
-            await this.client.table.create({
+            const response = await this.client.table.create({
                 namespace: this.appConfigService.getDuneNamespace(),
                 table_name: tableName,
                 schema: [
@@ -52,6 +52,7 @@ export class DuneSenderService {
                     { "name": "volumeusd", "type": ColumnType.Double },
                 ],
             });
+            this.logger.log(response);
         } catch (error) {
             Logger.error(error);
             return false;
@@ -65,16 +66,17 @@ export class DuneSenderService {
                 namespace: this.appConfigService.getDuneNamespace(),
                 table_name: tableName,
                 data,
-                content_type: ContentType.Csv, 
+                content_type: ContentType.Csv,
             });
             this.logger.log(result);
+
         } catch (error) {
             Logger.error(error);
             if (error instanceof DuneError) {
                 if (error.message.includes("This table was not found")) {
                     const isTableCreated = await this.createTable(tableName);
                     if (isTableCreated) {
-                        return await this.insertCsvDataToTable(tableName, data);
+                        this.logger.log("Table was created");
                     }
                 }
             }

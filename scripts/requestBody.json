@@ -1,13 +1,13 @@
 {
-    "size": 5000,
+    "size": 10000,
     "query": {
         "bool": {
             "filter": [
                 {
                     "range": {
                         "timestamp": {
-                            "gte": "2024-07-27T00:00:00",
-                            "lt": "2024-08-26T10:00:00",
+                            "gte": "2023-01-01T00:00:00",
+                            "lt": "2024-08-29T10:00:00",
                             "format": "strict_date_optional_time"
                         }
                     }

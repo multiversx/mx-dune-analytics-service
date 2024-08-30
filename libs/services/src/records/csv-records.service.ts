@@ -82,7 +82,7 @@ export class CsvRecordsService {
         return Object.keys(this.csvRecords);
     }
 
-    async formatRecord(csvFileName: string): Promise<[string, number]>{
+    async formatRecord(csvFileName: string): Promise<[string, number]> {
         let resultString: string = "timestamp,volumeusd\n";
         let length: number = 0;
 

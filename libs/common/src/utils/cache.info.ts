@@ -18,7 +18,7 @@ export class CacheInfo {
 
   static TokenPrice(tokenId: string, date: moment.Moment) {
     return {
-      key: `${tokenId}-${date}`,
+      key: `${tokenId}-${date.format('YYYY-MM-DD')}`,
       ttl: Constants.oneDay(),
     };
   }
