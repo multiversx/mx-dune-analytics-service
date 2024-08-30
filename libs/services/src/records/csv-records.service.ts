@@ -22,7 +22,7 @@ export class CsvRecordsService {
 
     async deleteRecord(csvFileName: string) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
-            this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
+            await this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
             delete this.csvRecords[csvFileName];
         }, false);
     }
@@ -30,14 +30,14 @@ export class CsvRecordsService {
     async deleteFirstRecords(csvFileName: string, length: number) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
             this.csvRecords[csvFileName] = this.csvRecords[csvFileName].slice(length);
-            this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName], CacheInfo.CSVRecord(csvFileName).ttl);
+            await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName], CacheInfo.CSVRecord(csvFileName).ttl);
         }, false);
     }
 
     async pushRecord(csvFileName: string, data: string[]) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
             if (!this.csvRecords[csvFileName]) {
-                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
+                await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
             } else {
                 this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
@@ -49,10 +49,10 @@ export class CsvRecordsService {
     async unshiftRecord(csvFileName: string, data: string[]) {
         await Locker.lock(`update-record-${csvFileName}`, async () => {
             if (!this.csvRecords[csvFileName]) {
-                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
+                await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
             } else {
-                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data.concat(this.csvRecords[csvFileName]), CacheInfo.CSVRecord(csvFileName).ttl);
+                await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data.concat(this.csvRecords[csvFileName]), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].unshift(...data);
             }
         }, false);

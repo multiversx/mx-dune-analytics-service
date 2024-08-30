@@ -1,6 +1,6 @@
 import { CacheInfo } from "@libs/common";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import BigNumber from "bignumber.js";
 import axios from 'axios';
 import moment from "moment";
@@ -29,10 +29,16 @@ export class DataService {
     }
 
     async getTokenPriceRaw(tokenId: string, date: moment.Moment): Promise<BigNumber> {
-        if (tokenId.startsWith('USDC')) {
-            return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiCexUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+        try {
+            if (tokenId.startsWith('USDC')) {
+                return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiCexUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+            }
+            return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiXexchangeUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
         }
-        return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiXexchangeUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+        catch (error) {
+            Logger.error(error);
+            return new BigNumber(0);
+        }
     }
 
     async getTokenPrecision(tokenId: string): Promise<number> {
