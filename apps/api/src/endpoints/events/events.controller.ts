@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { EventLog, EventsLog } from "./entities/event.log";
+import { EventLog } from "./entities/event.log";
 import { EventsService } from "@libs/services/events";
 import { DuneSenderService } from "@libs/services/dune-sender";
 
