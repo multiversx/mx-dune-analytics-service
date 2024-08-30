@@ -43,6 +43,6 @@ export class EventsLog {
     Object.assign(this, init);
   }
 
-  @ApiProperty({ type: [EventLog] })
+  @ApiProperty({ type: EventLog, isArray: true })
   events: EventLog[] = [];
 }

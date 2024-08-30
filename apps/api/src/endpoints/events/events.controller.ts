@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { EventsLog } from "./entities/event.log";
+import { EventLog, EventsLog } from "./entities/event.log";
 import { EventsService } from "@libs/services/events";
 import { DuneSenderService } from "@libs/services/dune-sender";
 
@@ -14,9 +14,9 @@ export class EventsController {
 
     @Post("/events-webhook")
     async eventsWebhook(
-        @Body() body: EventsLog,
+        @Body() body: EventLog[],
     ): Promise<void> {
-        await this.eventsService.eventsWebhook(body.events);
+        await this.eventsService.eventsWebhook(body);
     }
 
     @Get("/test")
