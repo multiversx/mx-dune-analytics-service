@@ -7,16 +7,6 @@ export interface Config {
       privatePort: number;
       useCachingInterceptor: boolean;
     };
-    cacheWarmer: {
-      port: number;
-    };
-    queueWorker: {
-      port: number;
-    };
-    transactionsProcessor: {
-      port: number;
-      maxLookBehind: number;
-    };
   };
   libs: {
     common: {
