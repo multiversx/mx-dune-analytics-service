@@ -7,6 +7,11 @@ export interface Config {
       privatePort: number;
       useCachingInterceptor: boolean;
     };
+    duneMock: {
+      port: number;
+      privatePort: number;
+      useCachingInterceptor: boolean;
+    };
   };
   libs: {
     common: {
@@ -15,6 +20,7 @@ export interface Config {
         api: string;
         dataApiCex: string;
         dataApiXexchange: string;
+        duneMockApi: string;
       };
       database: {
         host: string;
@@ -30,6 +36,7 @@ export interface Config {
       };
       features: {
         dune: {
+          enabled: boolean;
           namespace: string;
           apiKey: string;
         };

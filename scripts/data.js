@@ -36,7 +36,7 @@ const sendEvents = async () => {
         await fetchEvents();
         for (let i = 0; i < events.length; i += 10) {
             const eventsChunk = events.slice(i, i + 10);
-            await axios.post('http://localhost:3000/events-webhook', { 'events': eventsChunk }, {
+            await axios.post('http://localhost:3000/events-webhook', eventsChunk, {
                 headers: { 'Content-Type': 'application/json' }
             });
             await new Promise(resolve => setTimeout(resolve, 100));

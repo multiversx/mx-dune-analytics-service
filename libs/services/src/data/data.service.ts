@@ -44,8 +44,18 @@ export class DataService {
     async getTokenPrecision(tokenId: string): Promise<number> {
         return await this.cachingService.getOrSet(
             CacheInfo.TokenPrecision(tokenId).key,
-            async () => (await axios.get(`${this.appConfigService.getApiUrl()}/tokens/${tokenId}?fields=decimals`)).data.decimals,
+            async () => await this.getTokenPrecisionRaw(tokenId),
             CacheInfo.TokenPrecision(tokenId).ttl
         );
+    }
+
+    async getTokenPrecisionRaw(tokenId: string): Promise<number> {
+        try {
+            const precision = (await axios.get(`${this.appConfigService.getApiUrl()}/tokens/${tokenId}?fields=decimals`)).data.decimals;
+            return precision;
+        } catch (error) {
+            Logger.error(error);
+            return 18;
+        }
     }
 }

@@ -22,9 +22,9 @@ export class EventsService {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
 
         for (const eventLog of eventsLog) {
-            eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
-            eventLog.data = Buffer.from(eventLog.data, 'hex').toString('base64');
-            eventLog.additionalData = eventLog.additionalData.map((data) => Buffer.from(data, 'hex').toString('base64'));
+            // eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
+            // eventLog.data = Buffer.from(eventLog.data, 'hex').toString('base64');
+            // eventLog.additionalData = eventLog.additionalData.map((data) => Buffer.from(data, 'hex').toString('base64'));
 
             switch (eventLog.identifier) {
                 case "addLiquidity":

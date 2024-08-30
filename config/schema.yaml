@@ -4,6 +4,10 @@ apps:
     port: integer
     privatePort: integer
     useCachingInterceptor: boolean
+  duneMock:
+    port: integer
+    privatePort: integer
+    useCachingInterceptor: boolean
 libs:
   common:
     network:
@@ -13,6 +17,7 @@ libs:
       api: string
       dataApiCex: string
       dataApiXexchange: string
+      duneMockApi: string
     database:
       host: string
       port: integer
@@ -31,6 +36,7 @@ libs:
       port: integer
     features:
       dune:
+        enabled: boolean
         namespace: string
         apiKey: string
     nativeAuth:
