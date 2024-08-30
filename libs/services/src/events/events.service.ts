@@ -20,7 +20,7 @@ export class EventsService {
 
     public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
-
+        console.log(eventsLog);
         for (const eventLog of eventsLog) {
             switch (eventLog.identifier) {
                 case "addLiquidity":
