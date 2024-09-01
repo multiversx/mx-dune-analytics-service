@@ -77,9 +77,8 @@ export class DuneSenderService {
 
     async insertCsvDataToLocalTable(tableName: string, data: Buffer): Promise<boolean> {
         await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, data, {
-            headers: { 'Content-Type': ContentType.Csv }
+            headers: { 'Content-Type': ContentType.Csv },
         });
-        // console.log(response);
 
         return true;
     }

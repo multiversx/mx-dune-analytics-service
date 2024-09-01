@@ -1,6 +1,7 @@
-import { Module } from "@nestjs/common";
+import { Module, MiddlewareConsumer, RequestMethod } from "@nestjs/common";
 import { ServicesModule } from "@libs/services/services.module";
 import { DuneMockController } from "./dune-mock.controller";
+import { CsvParserMiddleware } from "./csv.middleware";
 
 @Module({
     imports: [
@@ -10,4 +11,10 @@ import { DuneMockController } from "./dune-mock.controller";
         DuneMockController,
     ],
 })
-export class DuneMockModule { }
+export class DuneMockModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+        .apply(CsvParserMiddleware)
+        .forRoutes({ path: 'dune-mock/:table_name/insert', method: RequestMethod.POST });
+    }
+ }

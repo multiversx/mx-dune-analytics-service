@@ -3,7 +3,7 @@ import { Body, Controller, Param, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateTableBody } from "./entities";
 
-@Controller('')
+@Controller('/dune-mock')
 @ApiTags('dune-mock')
 export class DuneMockController {
     constructor(
@@ -22,6 +22,8 @@ export class DuneMockController {
         @Param('table_name') tableName: string,
         @Body() body: Buffer,
     ): Promise<void> {
-        await this.duneMockService.insertIntoTable(tableName, body);
+        console.log('inserting into table', tableName);
+        console.log(body);
+        // await this.duneMockService.insertIntoTable(tableName, body);
     }
 }
