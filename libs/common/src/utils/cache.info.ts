@@ -1,4 +1,5 @@
 import { Constants } from "@multiversx/sdk-nestjs-common";
+import moment from "moment";
 
 export class CacheInfo {
   key: string = "";

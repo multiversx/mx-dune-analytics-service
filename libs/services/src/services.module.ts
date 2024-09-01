@@ -6,6 +6,7 @@ import { DataService } from './data';
 import { DuneSenderService } from './dune-sender';
 import { CsvRecordsService } from './records';
 import { DuneMockService } from './dune-mock';
+import { AppConfigService } from 'apps/api/src/config/app-config.service';
 
 @Global()
 @Module({
@@ -19,6 +20,7 @@ import { DuneMockService } from './dune-mock';
     DuneSenderService,
     CsvRecordsService,
     DuneMockService,
+    AppConfigService,
   ],
   exports: [
     EventsService,

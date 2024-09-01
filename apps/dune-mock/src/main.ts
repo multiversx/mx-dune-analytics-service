@@ -27,7 +27,7 @@ import '@multiversx/sdk-nestjs-common/lib/utils/extensions/array.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/date.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/number.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/string.extensions';
-import { AppConfigService } from './config/app-config.service';
+import { DuneMockConfigService } from './config/dune-mock-config.service';
 import { CommonConfigService } from '@libs/common/config/common.config.service';
 
 async function bootstrap() {
@@ -39,7 +39,7 @@ async function bootstrap() {
 
   const privateApp = await NestFactory.create(PrivateAppModule);
 
-  const appConfigService = publicApp.get<AppConfigService>(AppConfigService);
+  const appConfigService = publicApp.get<DuneMockConfigService>(DuneMockConfigService);
   const commonConfigService = publicApp.get<CommonConfigService>(CommonConfigService);
   const metricsService = privateApp.get<MetricsService>(MetricsService);
 
@@ -65,7 +65,6 @@ async function bootstrap() {
   await publicApp.listen(appConfigService.config.port);
 
   await privateApp.listen(appConfigService.config.privatePort);
-  console.log("DAAAAAAAAAAAAAAAAAA");
 
   const logger = new Logger('Bootstrapper');
 
