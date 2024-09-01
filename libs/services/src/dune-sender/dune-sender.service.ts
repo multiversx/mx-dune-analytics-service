@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/client-sdk";
@@ -66,19 +66,37 @@ export class DuneSenderService {
     }
 
     async createLocalTable(tableName: string): Promise<boolean> {
-        const response = await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/table/create`, {
-            tableName,
-            'schema': ['timestamp', 'volumeusd'],
-        });
-        console.log(response);
+        try{
+            const response = await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/table/create`, {
+                tableName,
+                'schema': ['timestamp', 'volumeusd'],
+            });
+            this.logger.log(response);
+        } catch (error) {
+            Logger.error(error);
+            return false;
+        }
 
         return true;
     }
 
     async insertCsvDataToLocalTable(tableName: string, data: Buffer): Promise<boolean> {
-        await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, data, {
-            headers: { 'Content-Type': ContentType.Csv },
-        });
+        try{
+            await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, data, {
+                headers: { 'Content-Type': ContentType.Csv },
+            });
+        } catch (error) {
+            Logger.error(error);
+            if (error instanceof HttpException) {
+                if (error.getStatus() === 404) {
+                    const isTableCreated = await this.createLocalTable(tableName);
+                    if (isTableCreated) {
+                        this.logger.log("Table was created");
+                    }
+                }
+            }
+            return false;
+        }
 
         return true;
     }

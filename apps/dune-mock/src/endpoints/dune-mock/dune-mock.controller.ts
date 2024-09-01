@@ -22,8 +22,6 @@ export class DuneMockController {
         @Param('table_name') tableName: string,
         @Body() body: Buffer,
     ): Promise<void> {
-        console.log('inserting into table', tableName);
-        console.log(body);
-        // await this.duneMockService.insertIntoTable(tableName, body);
+        await this.duneMockService.insertIntoTable(tableName, body);
     }
 }
