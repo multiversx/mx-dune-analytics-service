@@ -17,7 +17,7 @@ export class DuneSenderService {
 
     client = new DuneClient(this.appConfigService.getDuneApiKey());
 
-    @Cron(CronExpression.EVERY_10_SECONDS)
+    @Cron(CronExpression.EVERY_30_SECONDS)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -66,12 +66,16 @@ export class DuneSenderService {
     }
 
     async createLocalTable(tableName: string): Promise<boolean> {
-        const response = await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/table/create`, {
-            tableName,
-            'schema': ['timestamp', 'volumeusd'],
-        });
-        console.log(response);
-
+        try {
+            await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/table/create`, {
+                tableName,
+                'schema': ['timestamp', 'volumeusd'],
+            });
+            // console.log(response);
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
         return true;
     }
 
@@ -86,11 +90,21 @@ export class DuneSenderService {
             await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, csvFile, {
                 headers: { 'Content-Type': ContentType.Json }
             });
+
         } catch (error) {
-            console.log(error);
+            // console.log(error);
+
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === 404) {
+                    console.log("Trying to create local table !")
+                    const isTableCreated = await this.createLocalTable(tableName);
+                    if (isTableCreated) {
+                        this.logger.log("Table was created");
+                    }
+                }
+            }
             return false;
         }
-
         return true;
     }
 

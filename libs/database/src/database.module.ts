@@ -1,6 +1,8 @@
 import { CommonConfigModule, CommonConfigService } from '@libs/common';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CsvFile, CsvFileSchema } from './schemas/csv.file.schema';
+import { CsvFileRepository } from './repositories';
 
 @Module({
   imports: [
@@ -15,10 +17,15 @@ import { MongooseModule } from '@nestjs/mongoose';
       }),
       inject: [CommonConfigService],
     }),
+    MongooseModule.forFeature([
+      { name: CsvFile.name, schema: CsvFileSchema },
+    ]),
   ],
   providers: [
+    CsvFileRepository,
   ],
   exports: [
+    CsvFileRepository,
   ],
 })
 export class DatabaseModule { }
