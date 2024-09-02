@@ -21,5 +21,5 @@ export class CsvFile {
     headers!: string;
 
     @ApiProperty()
-    schema!: CsvFileEntity[];
+    schema!: string[];
 }

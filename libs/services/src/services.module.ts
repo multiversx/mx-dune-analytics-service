@@ -5,7 +5,6 @@ import { EventsService } from './events';
 import { DataService } from './data';
 import { DuneSenderService } from './dune-sender';
 import { CsvRecordsService } from './records';
-import { DuneMockService } from './dune-mock';
 
 @Global()
 @Module({
@@ -18,14 +17,12 @@ import { DuneMockService } from './dune-mock';
     DataService,
     DuneSenderService,
     CsvRecordsService,
-    DuneMockService,
   ],
   exports: [
     EventsService,
     DataService,
     DuneSenderService,
     CsvRecordsService,
-    DuneMockService,
   ],
 })
 export class ServicesModule { }

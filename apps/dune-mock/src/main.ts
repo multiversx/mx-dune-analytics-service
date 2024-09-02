@@ -65,7 +65,6 @@ async function bootstrap() {
   await publicApp.listen(appConfigService.config.port);
 
   await privateApp.listen(appConfigService.config.privatePort);
-  console.log("DAAAAAAAAAAAAAAAAAA");
 
   const logger = new Logger('Bootstrapper');
 

@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "build:all": "nest build api && nest build transactions-processor && nest build cache-warmer && nest build queue-worker && nest build common",
+    "build:all": "nest build api && nest build dune-mock && nest build common",
     "build:infra": "npm run build:all && npm run copy-config-infra",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:api": "cross-env NODE_APP=api npm run start",
@@ -60,6 +60,7 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.6",
     "cron": "^3.1.6",
+    "csv-parse": "^5.5.6",
     "csv-writer": "^1.6.0",
     "ioredis": "^5.3.2",
     "jsonwebtoken": "^9.0.0",

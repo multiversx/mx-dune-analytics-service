@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ServicesModule } from "@libs/services/services.module";
 import { DuneMockController } from "./dune-mock.controller";
+import { DuneMockServicesModule } from "@libs/services";
 
 @Module({
     imports: [
-        ServicesModule,
+        DuneMockServicesModule,
     ],
     controllers: [
         DuneMockController,

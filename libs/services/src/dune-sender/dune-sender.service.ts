@@ -5,7 +5,7 @@ import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/c
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
-
+import { CsvFile } from "apps/dune-mock/src/endpoints/dune-mock/entities/csv.file";
 @Injectable()
 export class DuneSenderService {
     private readonly logger = new OriginLogger(DuneSenderService.name);
@@ -39,7 +39,7 @@ export class DuneSenderService {
             const formattedCsvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
             const isRecordSent = this.appConfigService.isDuneSendingEnabled() ?
                 await this.insertCsvDataToDuneTable(formattedCsvFileName, csvData) :
-                await this.insertCsvDataToLocalTable(formattedCsvFileName, csvData);
+                await this.insertCsvDataToLocalTable(formattedCsvFileName, resultString);
 
             if (isRecordSent) {
                 await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
@@ -75,11 +75,21 @@ export class DuneSenderService {
         return true;
     }
 
-    async insertCsvDataToLocalTable(tableName: string, data: Buffer): Promise<boolean> {
-        await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, data, {
-            headers: { 'Content-Type': ContentType.Csv }
-        });
-        // console.log(response);
+    async insertCsvDataToLocalTable(tableName: string, data: string): Promise<boolean> {
+        console.log(this.appConfigService.getDuneMockApiUrl());
+        const lines = data.split('\n');
+        const csvFile = new CsvFile();
+        csvFile.headers = lines[0];
+        csvFile.schema = lines.slice(1);
+        console.log(csvFile);
+        try {
+            await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, csvFile, {
+                headers: { 'Content-Type': ContentType.Json }
+            });
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
 
         return true;
     }
