@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "build:all": "nest build api && nest build dune-mock && nest build common",
+    "build:all": "nest build api && nest build dune-simulator && nest build common",
     "build:infra": "npm run build:all && npm run copy-config-infra",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:api": "cross-env NODE_APP=api npm run start",
