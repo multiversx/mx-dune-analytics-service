@@ -1,10 +1,11 @@
 import { CacheInfo } from "@libs/common";
 import { CacheService } from "@multiversx/sdk-nestjs-cache";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import BigNumber from "bignumber.js";
 import axios from 'axios';
 import moment from "moment";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
+import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 
 interface TokenPrice {
     name: string;
@@ -15,6 +16,8 @@ interface TokenPrice {
 
 @Injectable()
 export class DataService {
+    private readonly logger = new OriginLogger(DataService.name);
+
     constructor(
         private readonly cachingService: CacheService,
         private readonly appConfigService: AppConfigService,
@@ -36,7 +39,7 @@ export class DataService {
             return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiXexchangeUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
         }
         catch (error) {
-            Logger.error(error);
+            this.logger.error(error);
             return new BigNumber(0);
         }
     }
@@ -54,7 +57,7 @@ export class DataService {
             const precision = (await axios.get(`${this.appConfigService.getApiUrl()}/tokens/${tokenId}?fields=decimals`)).data.decimals;
             return precision;
         } catch (error) {
-            Logger.error(error);
+            this.logger.error(error);
             return 18;
         }
     }

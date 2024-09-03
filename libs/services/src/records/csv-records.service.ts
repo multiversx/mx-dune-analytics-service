@@ -88,6 +88,7 @@ export class CsvRecordsService {
         let resultString: string = "timestamp,volumeusd\n";
         let length: number = 0;
 
+        // eslint-disable-next-line require-await
         await Locker.lock(`update-record-${csvFileName}`, async () => {
             length = this.csvRecords[csvFileName].length;
             resultString += this.csvRecords[csvFileName].join("\n");

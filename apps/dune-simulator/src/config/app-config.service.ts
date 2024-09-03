@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class AppConfigService {
-  readonly config = configuration().apps.duneMock;
+  readonly config = configuration().apps.duneSimulator;
 
   getDuneNamespace(): string {
     return configuration().libs.common.features.dune.namespace ?? "";
@@ -25,8 +25,8 @@ export class AppConfigService {
     return configuration().libs.common.urls.dataApiXexchange ?? "";
   }
 
-  getDuneMockApiUrl(): string {
-    return configuration().libs.common.urls.duneMockApi ?? "";
+  getDuneSimulatorApiUrl(): string {
+    return configuration().libs.common.urls.duneSimulatorApi ?? "";
   }
 
   isDuneSendingEnabled(): boolean {

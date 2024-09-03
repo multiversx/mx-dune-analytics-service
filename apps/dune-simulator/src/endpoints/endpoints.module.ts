@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { DynamicModuleUtils } from "@libs/common";
-import { DuneMockModule } from "./dune-mock/dune-mock.module";
+import { DuneSimulatorModule } from "./dune-simulator/dune-simulator.module";
 
 @Module({
     imports: [
-        DuneMockModule,
+        DuneSimulatorModule,
     ],
     providers: [
         DynamicModuleUtils.getNestJsApiConfigService(),

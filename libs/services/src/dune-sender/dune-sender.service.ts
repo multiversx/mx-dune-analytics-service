@@ -5,7 +5,7 @@ import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/c
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
-import { CsvFile } from "apps/dune-mock/src/endpoints/dune-mock/entities/csv.file";
+import { CsvFile } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 @Injectable()
 export class DuneSenderService {
     private readonly logger = new OriginLogger(DuneSenderService.name);
@@ -59,7 +59,7 @@ export class DuneSenderService {
             });
             this.logger.log(response);
         } catch (error) {
-            Logger.error(error);
+            this.logger.error(error);
             return false;
         }
         return true;
@@ -67,7 +67,7 @@ export class DuneSenderService {
 
     async createLocalTable(tableName: string): Promise<boolean> {
         try {
-            await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/table/create`, {
+            await axios.post(`${this.appConfigService.getDuneSimulatorApiUrl()}/table/create`, {
                 tableName,
                 'schema': [
                     { 'name': 'timestamp' },
@@ -88,7 +88,7 @@ export class DuneSenderService {
         csvFile.schema = lines.slice(1);
 
         try {
-            await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, csvFile, {
+            await axios.post(`${this.appConfigService.getDuneSimulatorApiUrl()}/${tableName}/insert`, csvFile, {
                 headers: { 'Content-Type': ContentType.Json },
             });
         } catch (error) {
@@ -117,7 +117,7 @@ export class DuneSenderService {
             this.logger.log(result);
 
         } catch (error) {
-            Logger.error(error);
+            this.logger.error(error);
             if (error instanceof DuneError) {
                 if (error.message.includes("This table was not found")) {
                     const isTableCreated = await this.createDuneTable(tableName);

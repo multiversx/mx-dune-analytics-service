@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { DatabaseModule } from '@libs/database';
 import { DynamicModuleUtils } from '@libs/common';
-import { DuneMockService } from './dune-mock/dune-mock.service';
+import { DuneSimulatorService } from './dune-simulator/dune-simulator.service';
 
 @Global()
 @Module({
@@ -10,10 +10,10 @@ import { DuneMockService } from './dune-mock/dune-mock.service';
     DynamicModuleUtils.getCachingModule(),
   ],
   providers: [
-    DuneMockService,
+    DuneSimulatorService,
   ],
   exports: [
-    DuneMockService,
+    DuneSimulatorService,
   ],
 })
-export class DuneMockServicesModule { }
+export class DuneSimulatorServicesModule { }

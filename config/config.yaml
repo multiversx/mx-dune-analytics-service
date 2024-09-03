@@ -3,7 +3,7 @@ apps:
     port: 3000
     privatePort: 4000
     useCachingInterceptor: true
-  duneMock:
+  duneSimulator:
     port: 3001
     privatePort: 4001
     useCachingInterceptor: true
@@ -14,7 +14,7 @@ libs:
       api: ${API_URL}
       dataApiCex: ${DATA_API_CEX_URL}
       dataApiXexchange: ${DATA_API_XEXCHANGE_URL}
-      duneMockApi: ${DUNE_MOCK_API_URL}
+      duneSimulatorApi: ${DUNE_SIMULATOR_API_URL}
     database:
       host: 'localhost'
       port: 27017

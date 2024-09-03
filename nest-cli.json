@@ -35,13 +35,13 @@
         ]
       }
     },
-    "dune-mock": {
+    "dune-simulator": {
       "type": "application",
-      "root": "apps/dune-mock",
+      "root": "apps/dune-simulator",
       "entryFile": "main",
-      "sourceRoot": "apps/dune-mock/src",
+      "sourceRoot": "apps/dune-simulator/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/dune-mock/tsconfig.app.json",
+        "tsConfigPath": "apps/dune-simulator/tsconfig.app.json",
         "assets": [
           {
             "include": "../config/config.yaml",
@@ -53,7 +53,7 @@
           },
           {
             "include": "../docs/swagger.md",
-            "outDir": "./dist/apps/dune-mock/docs"
+            "outDir": "./dist/apps/dune-simulator/docs"
           }
         ]
       }

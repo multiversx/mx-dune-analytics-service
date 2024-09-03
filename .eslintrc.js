@@ -28,8 +28,8 @@ module.exports = {
         pattern: 'apps/api',
       },
       {
-        type: 'apps/dune-mock',
-        pattern: 'apps/dune-mock',
+        type: 'apps/dune-simulator',
+        pattern: 'apps/dune-simulator',
       },
       {
         type: 'libs/common',
@@ -74,7 +74,7 @@ module.exports = {
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
-          from: 'apps/dune-mock',
+          from: 'apps/dune-simulator',
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
@@ -83,7 +83,7 @@ module.exports = {
         },
         {
           from: 'libs/services',
-          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/api', 'apps/dune-mock']
+          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/api', 'apps/dune-simulator']
         },
         {
           from: 'libs/common',
