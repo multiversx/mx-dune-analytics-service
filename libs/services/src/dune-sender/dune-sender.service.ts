@@ -83,7 +83,7 @@ export class DuneSenderService {
     async insertCsvDataToLocalTable(tableName: string, data: Buffer): Promise<boolean> {
 
         try {
-            const url = `${this.appConfigService.getDuneSimulatorApiUrl()}/${this.appConfigService.getDuneNamespace()}/${tableName}/insert`
+            const url = `${this.appConfigService.getDuneSimulatorApiUrl()}/${this.appConfigService.getDuneNamespace()}/${tableName}/insert`;
             const response = await axios.post(url, data, {
                 headers: {
                     'content-type': 'text/csv',
