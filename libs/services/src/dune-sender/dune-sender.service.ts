@@ -71,7 +71,7 @@ export class DuneSenderService {
                 tableName,
                 'schema': [
                     { 'name': 'timestamp' },
-                    { 'name': 'volumeusdd' },
+                    { 'name': 'volumeusd' },
                 ],
             });
         } catch (error) {

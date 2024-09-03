@@ -28,16 +28,8 @@ module.exports = {
         pattern: 'apps/api',
       },
       {
-        type: 'apps/cache-warmer',
-        pattern: 'apps/cache-warmer',
-      },
-      {
-        type: 'apps/queue-worker',
-        pattern: 'apps/queue-worker',
-      },
-      {
-        type: 'apps/transactions-processor',
-        pattern: 'apps/transactions-processor',
+        type: 'apps/dune-mock',
+        pattern: 'apps/dune-mock',
       },
       {
         type: 'libs/common',
@@ -82,15 +74,7 @@ module.exports = {
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
-          from: 'apps/cache-warmer',
-          allow: ['libs/common', 'libs/entities', 'libs/services']
-        },
-        {
-          from: 'apps/queue-worker',
-          allow: ['libs/common', 'libs/entities', 'libs/services']
-        },
-        {
-          from: 'apps/transactions-processor',
+          from: 'apps/dune-mock',
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
@@ -99,7 +83,7 @@ module.exports = {
         },
         {
           from: 'libs/services',
-          allow: ['libs/common', 'libs/entities', 'libs/database']
+          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/api', 'apps/dune-mock']
         },
         {
           from: 'libs/common',
