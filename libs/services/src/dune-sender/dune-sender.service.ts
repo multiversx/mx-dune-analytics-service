@@ -5,7 +5,6 @@ import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/c
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
-import { CsvFile } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 @Injectable()
 export class DuneSenderService {
     private readonly logger = new OriginLogger(DuneSenderService.name);
@@ -17,7 +16,7 @@ export class DuneSenderService {
 
     client = new DuneClient(this.appConfigService.getDuneApiKey());
 
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_10_SECONDS)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -39,7 +38,7 @@ export class DuneSenderService {
             const formattedCsvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
             const isRecordSent = this.appConfigService.isDuneSendingEnabled() ?
                 await this.insertCsvDataToDuneTable(formattedCsvFileName, csvData) :
-                await this.insertCsvDataToLocalTable(formattedCsvFileName, resultString);
+                await this.insertCsvDataToLocalTable(formattedCsvFileName, csvData);
 
             if (isRecordSent) {
                 await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
@@ -81,16 +80,17 @@ export class DuneSenderService {
         return true;
     }
 
-    async insertCsvDataToLocalTable(tableName: string, data: string): Promise<boolean> {
-        const lines = data.split('\n');
-        const csvFile = new CsvFile();
-        csvFile.headers = lines[0];
-        csvFile.schema = lines.slice(1);
+    async insertCsvDataToLocalTable(tableName: string, data: Buffer): Promise<boolean> {
 
         try {
-            await axios.post(`${this.appConfigService.getDuneSimulatorApiUrl()}/${tableName}/insert`, csvFile, {
-                headers: { 'Content-Type': ContentType.Json },
+            const url = `${this.appConfigService.getDuneSimulatorApiUrl()}/${this.appConfigService.getDuneNamespace()}/${tableName}/insert`
+            const response = await axios.post(url, data, {
+                headers: {
+                    'content-type': 'text/csv',
+                    'x-dune-api-key': this.appConfigService.getDuneApiKey(),
+                },
             });
+            console.log(response.data);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 if (error.response.status === 404) {
@@ -100,6 +100,7 @@ export class DuneSenderService {
                         Logger.log("Table was created");
                     }
                 }
+                this.logger.log(error.response.data);
             }
             return false;
         }

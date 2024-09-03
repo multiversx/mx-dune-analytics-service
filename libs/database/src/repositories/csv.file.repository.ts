@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { ErrorLoggerAsync } from "@multiversx/sdk-nestjs-common";
@@ -25,7 +25,7 @@ export class CsvFileRepository {
         const csvFile = await this.csvFileTableModel.findOne({ fileName: csvFileName });
 
         if (!csvFile) {
-            throw new NotFoundException(`Document with name: ${csvFileName} not found`);
+            throw new HttpException('This table was not found', HttpStatus.NOT_FOUND);
         }
 
         csvFile.records?.push(...newRecords);

@@ -1,8 +1,8 @@
-import { Body, Controller, HttpException, Param, Post } from "@nestjs/common";
+import { Body, Controller, HttpException, Param, Post, Headers } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateTableBody } from "./entities";
 import { DuneSimulatorService } from "@libs/services/dune-simulator";
-import { CsvFile } from "./entities/csv.file";
+
 
 @Controller('/dune-simulator')
 @ApiTags('dune-simulator')
@@ -23,16 +23,19 @@ export class DuneSimulatorController {
         }
     }
 
-    @Post("/:table_name/insert")
+    @Post("/:name_space/:table_name/insert")
     async insertIntoTable(
+        @Param('name_space') nameSpace: string,
         @Param('table_name') tableName: string,
-        @Body() body: CsvFile,
-    ): Promise<HttpException> {
-        const isDataInserted = await this.duneSimulatorService.insertIntoTable(tableName, body);
-        if (isDataInserted) {
-            return new HttpException("Data was inserted succesfully !", 201);
-        } else {
-            throw new HttpException("Table not found !", 404);
+        @Headers('x-dune-api-key') apiKey: string,
+        @Headers('content-type') contentType: string,
+        @Body() body: any[],
+    ): Promise<{ 'rows_written': number, 'bytes_written': number }> {
+        try {
+            const response = await this.duneSimulatorService.insertIntoTable(nameSpace, tableName, body, apiKey, contentType);
+            return response;
+        } catch (error) {
+            throw error;
         }
     }
 }

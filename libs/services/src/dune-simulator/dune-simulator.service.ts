@@ -1,7 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { CsvFileRepository } from "@libs/database/repositories";
 import { CreateTableBody } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
-import { CsvFile } from "apps/dune-simulator/src/endpoints/dune-simulator/entities/csv.file";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
@@ -24,13 +23,39 @@ export class DuneSimulatorService {
         return true;
     }
 
-    async insertIntoTable(csvFileName: string, body: CsvFile) {
+    async insertIntoTable(
+        nameSpace: string,
+        tableName: string,
+        data: any[],
+        apiKey: string,
+        contentType: string
+    ): Promise<{ 'rows_written': number, 'bytes_written': number }> {
+        if (!nameSpace || !apiKey) {
+            throw new HttpException(`You are not authorized to write to the table named ${nameSpace}.${tableName}`, HttpStatus.UNAUTHORIZED);
+        }
+        if (contentType !== 'text/csv') {
+            throw new HttpException(`{Invalid content type ${contentType}. We support CSV (Content-Type: text/csv) and newline delimited JSON (Content-Type: application/x-ndjson).`
+                , HttpStatus.BAD_REQUEST);
+        }
+
+        const keys = Object.keys(data[0]);
+
+        const stringData = data.map((item) => {
+            return keys.map((key) => item[key]).join(',');
+        });
+
         try {
-            await this.csvFileRepository.insertIntoTable(csvFileName, body.schema);
+            await this.csvFileRepository.insertIntoTable(tableName, stringData);
         } catch (error) {
             this.logger.error(error);
-            return false;
+            throw error;
         }
-        return true;
+
+        const rowsWritten = stringData.length;
+
+        const csvString = stringData.join('\n');
+        const bytesWritten = Buffer.byteLength(csvString, 'utf8');
+
+        return { 'rows_written': rowsWritten, 'bytes_written': bytesWritten };
     }
 }
