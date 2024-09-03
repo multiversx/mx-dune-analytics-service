@@ -10,7 +10,9 @@ export class CsvRecordsService {
     constructor(
         private readonly cachingService: CacheService,
     ) {
-        this.init();
+        this.init().catch(error => {
+            console.error('Failed to initialize:', error);
+        });
     }
 
     private async init() {
@@ -40,7 +42,7 @@ export class CsvRecordsService {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
             } else {
-                this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
+                await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].push(...data);
             }
         }, false);
@@ -71,7 +73,7 @@ export class CsvRecordsService {
 
         await Locker.lock(`update-record-${csvFileName}`, async () => {
             record = this.csvRecords[csvFileName] ?? [];
-            this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
+            await this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
             delete this.csvRecords[csvFileName];
         }, false);
 

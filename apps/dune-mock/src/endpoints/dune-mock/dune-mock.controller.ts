@@ -11,10 +11,6 @@ export class DuneMockController {
         private readonly duneMockService: DuneMockService,
     ) { }
 
-    @Get('/test')
-    async test() {
-        return "da";
-    }
     @Post("/table/create")
     async createTable(
         @Body() body: CreateTableBody,
@@ -32,8 +28,6 @@ export class DuneMockController {
         @Param('table_name') tableName: string,
         @Body() body: CsvFile,
     ): Promise<HttpException> {
-        // console.log("HEEEEEEEEEEEEEEEEEEEEERRRRRRRRRREEEEEEEEEEEEEEEEEEEEEEEEEE");
-        // console.log(body);
         const isDataInserted = await this.duneMockService.insertIntoTable(tableName, body);
         if (isDataInserted) {
             return new HttpException("Data was inserted succesfully !", 201);

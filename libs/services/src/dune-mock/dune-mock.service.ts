@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { CsvFileRepository } from "@libs/database/repositories";
 import { CreateTableBody } from "apps/dune-mock/src/endpoints/dune-mock/entities";
 import { CsvFile } from "apps/dune-mock/src/endpoints/dune-mock/entities/csv.file";
@@ -12,9 +12,10 @@ export class DuneMockService {
 
     async createTable(body: CreateTableBody): Promise<boolean> {
         try {
-            await this.csvFileRepository.createTable(body.tableName, "timestamp,volumeusd");
+            const formattedHeaders = body.schema.map(header => header.name).join(',');
+            await this.csvFileRepository.createTable(body.tableName, formattedHeaders);
         } catch (error) {
-            console.log(error);
+            Logger.error(error);
             return false;
         }
         return true;
@@ -24,6 +25,7 @@ export class DuneMockService {
         try {
             await this.csvFileRepository.insertIntoTable(csvFileName, body.schema);
         } catch (error) {
+            Logger.error(error);
             return false;
         }
         return true;

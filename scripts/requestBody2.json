@@ -6,8 +6,8 @@
                 {
                     "range": {
                         "timestamp": {
-                            "gte": "2024-07-27T00:00:00",
-                            "lt": "2024-08-26T10:00:00",
+                            "gte": "2024-01-01T00:00:00",
+                            "lt": "2024-09-02T10:00:00",
                             "format": "strict_date_optional_time"
                         }
                     }
@@ -25,7 +25,7 @@
                                     },
                                     {
                                         "term": {
-                                            "events.address": "erd1qqqqqqqqqqqqqpgq0lzzvt2faev4upyf586tg38s84d7zsaj2jpsglugga"
+                                            "events.address": "erd1qqqqqqqqqqqqqpgq5jnjpsukhl295ry3wjrd3gtff0amrgux2jpsz3reum"
                                         }
                                     }
                                 ]

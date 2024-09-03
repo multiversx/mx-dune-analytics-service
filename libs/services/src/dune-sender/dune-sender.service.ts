@@ -69,9 +69,11 @@ export class DuneSenderService {
         try {
             await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/table/create`, {
                 tableName,
-                'schema': ['timestamp', 'volumeusd'],
+                'schema': [
+                    { 'name': 'timestamp' },
+                    { 'name': 'volumeusdd' },
+                ],
             });
-            // console.log(response);
         } catch (error) {
             this.logger.error(error);
             return false;
@@ -80,26 +82,22 @@ export class DuneSenderService {
     }
 
     async insertCsvDataToLocalTable(tableName: string, data: string): Promise<boolean> {
-        console.log(this.appConfigService.getDuneMockApiUrl());
         const lines = data.split('\n');
         const csvFile = new CsvFile();
         csvFile.headers = lines[0];
         csvFile.schema = lines.slice(1);
-        console.log(csvFile);
+
         try {
             await axios.post(`${this.appConfigService.getDuneMockApiUrl()}/${tableName}/insert`, csvFile, {
-                headers: { 'Content-Type': ContentType.Json }
+                headers: { 'Content-Type': ContentType.Json },
             });
-
         } catch (error) {
-            // console.log(error);
-
             if (axios.isAxiosError(error) && error.response) {
                 if (error.response.status === 404) {
-                    console.log("Trying to create local table !")
+                    Logger.log("Trying to create local table !");
                     const isTableCreated = await this.createLocalTable(tableName);
                     if (isTableCreated) {
-                        this.logger.log("Table was created");
+                        Logger.log("Table was created");
                     }
                 }
             }

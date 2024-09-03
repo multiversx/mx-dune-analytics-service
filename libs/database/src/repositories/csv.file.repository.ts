@@ -20,14 +20,6 @@ export class CsvFileRepository {
         });
     }
 
-    // public async findAllUsers(): Promise<BackofficeUser[] | undefined> {
-    //     const users = await this.backOfficeUserModel
-    //         .find()
-    //         .exec();
-
-    //     return users.map(user => user.toObject()) ?? undefined;
-    // }
-
     @ErrorLoggerAsync({ logArgs: true })
     public async insertIntoTable(csvFileName: string, newRecords: string[]): Promise<void> {
         const csvFile = await this.csvFileTableModel.findOne({ fileName: csvFileName });
@@ -39,10 +31,5 @@ export class CsvFileRepository {
         csvFile.records?.push(...newRecords);
 
         await csvFile.save();
-    }
-
-    @ErrorLoggerAsync({ logArgs: true })
-    public async findAll(): Promise<CsvFile[]> {
-        return this.csvFileTableModel.find().exec();
     }
 }

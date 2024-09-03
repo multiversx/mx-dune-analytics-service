@@ -22,6 +22,8 @@ export class EventsService {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
 
         for (const eventLog of eventsLog) {
+            // We need to parse an event only when we receive data from events-log-service
+
             // eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
             // eventLog.data = Buffer.from(eventLog.data, 'hex').toString('base64');
             // eventLog.additionalData = eventLog.additionalData.map((data) => Buffer.from(data, 'hex').toString('base64'));
