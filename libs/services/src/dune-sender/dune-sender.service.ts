@@ -44,7 +44,7 @@ export class DuneSenderService {
 
     async createTable(tableName: string): Promise<boolean> {
         try {
-            const url = `${this.appConfigService.getDuneApiUrl()}/table/create`;
+            const url = `${this.appConfigService.getDuneApiUrl()}/create`;
             const payload = {
                 'namespace': this.appConfigService.getDuneNamespace(),
                 'table_name': tableName,

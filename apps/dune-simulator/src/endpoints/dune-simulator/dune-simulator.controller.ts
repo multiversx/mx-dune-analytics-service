@@ -10,7 +10,7 @@ export class DuneSimulatorController {
         private readonly duneSimulatorService: DuneSimulatorService,
     ) { }
 
-    @Post("/table/create")
+    @Post("/create")
     async createTable(
         @Headers('x-dune-api-key') apiKey: string,
         @Headers('content-type') contentType: string,
