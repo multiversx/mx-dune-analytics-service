@@ -20,7 +20,7 @@ export interface Config {
         api: string;
         dataApiCex: string;
         dataApiXexchange: string;
-        duneSimulatorApi: string;
+        duneApi: string;
       };
       database: {
         host: string;
@@ -36,7 +36,6 @@ export interface Config {
       };
       features: {
         dune: {
-          enabled: boolean;
           namespace: string;
           apiKey: string;
         };

@@ -14,7 +14,7 @@ libs:
       api: ${API_URL}
       dataApiCex: ${DATA_API_CEX_URL}
       dataApiXexchange: ${DATA_API_XEXCHANGE_URL}
-      duneSimulatorApi: ${DUNE_SIMULATOR_API_URL}
+      duneApi: ${DUNE_API_URL}
     database:
       host: 'localhost'
       port: 27017
@@ -27,7 +27,6 @@ libs:
       port: 6379
     features:
       dune:
-        enabled: false
         namespace: ${DUNE_NAMESPACE}
         apiKey: ${DUNE_API_KEY}
     nativeAuth:

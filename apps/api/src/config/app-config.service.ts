@@ -25,11 +25,7 @@ export class AppConfigService {
     return configuration().libs.common.urls.dataApiXexchange ?? "";
   }
 
-  getDuneSimulatorApiUrl(): string {
-    return configuration().libs.common.urls.duneSimulatorApi ?? "";
-  }
-
-  isDuneSendingEnabled(): boolean {
-    return configuration().libs.common.features.dune.enabled ?? false;
+  getDuneApiUrl(): string {
+    return configuration().libs.common.urls.duneApi ?? "";
   }
 }

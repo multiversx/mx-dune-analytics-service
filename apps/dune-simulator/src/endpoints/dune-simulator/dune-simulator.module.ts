@@ -14,6 +14,6 @@ export class DuneSimulatorModule {
     configure(consumer: MiddlewareConsumer) {
         consumer
             .apply(CsvParserMiddleware)
-            .forRoutes({ path: 'dune-simulator/:name_space/:table_name/insert', method: RequestMethod.POST });
+            .forRoutes({ path: '/api/v1/table/:name_space/:table_name/insert', method: RequestMethod.POST });
     }
 }

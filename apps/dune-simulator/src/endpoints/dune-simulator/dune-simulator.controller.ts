@@ -3,7 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { CreateTableBody } from "./entities";
 import { DuneSimulatorService } from "@libs/services/dune-simulator";
 
-@Controller('/dune-simulator')
+@Controller('/api/v1/table')
 @ApiTags('dune-simulator')
 export class DuneSimulatorController {
     constructor(
@@ -16,7 +16,6 @@ export class DuneSimulatorController {
         @Headers('content-type') contentType: string,
         @Body() body: CreateTableBody,
     ): Promise<any> {
-        console.log(body);
         try {
             const response = await this.duneSimulatorService.createTable(apiKey, contentType, body);
             return response;
