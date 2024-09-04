@@ -12,15 +12,30 @@ export class DuneSimulatorService {
 
     ) { }
 
-    async createTable(body: CreateTableBody): Promise<boolean> {
+    async createTable(apiKey: string, contentType: string, body: CreateTableBody): Promise<any> {
+        if (contentType !== 'application/json') {
+            throw new HttpException("Content-Type header is not application/json", HttpStatus.BAD_REQUEST);
+        }
+
+        if (!body.namespace || !apiKey) {
+            throw new HttpException(`You are not authorized to create a table under the ${body.namespace} namespace`, HttpStatus.UNAUTHORIZED);
+        }
+
         try {
             const formattedHeaders = body.schema.map(header => header.name).join(',');
-            await this.csvFileRepository.createTable(body.tableName, formattedHeaders);
+            await this.csvFileRepository.createTable(body.table_name, formattedHeaders);
         } catch (error) {
-            this.logger.error(error);
-            return false;
+            throw error;
         }
-        return true;
+
+        return {
+            'namespace': body.namespace,
+            'table_name': body.table_name,
+            'full_name': `dune.${body.namespace}.${body.table_name}`,
+            'example_query': `select * from dune.${body.namespace}.${body.table_name}`,
+            'already_existed': false,
+            'message': "Table created successfully"
+        };
     }
 
     async insertIntoTable(

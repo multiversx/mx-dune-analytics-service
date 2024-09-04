@@ -1,8 +1,7 @@
-import { Body, Controller, HttpException, Param, Post, Headers } from "@nestjs/common";
+import { Body, Controller, Param, Post, Headers } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateTableBody } from "./entities";
 import { DuneSimulatorService } from "@libs/services/dune-simulator";
-
 
 @Controller('/dune-simulator')
 @ApiTags('dune-simulator')
@@ -13,13 +12,16 @@ export class DuneSimulatorController {
 
     @Post("/table/create")
     async createTable(
+        @Headers('x-dune-api-key') apiKey: string,
+        @Headers('content-type') contentType: string,
         @Body() body: CreateTableBody,
-    ): Promise<HttpException> {
-        const isTableCreated = await this.duneSimulatorService.createTable(body);
-        if (isTableCreated) {
-            return new HttpException("Table was created sucessfully !", 201);
-        } else {
-            throw new HttpException("Table was not created !", 400);
+    ): Promise<any> {
+        console.log(body);
+        try {
+            const response = await this.duneSimulatorService.createTable(apiKey, contentType, body);
+            return response
+        } catch (error) {
+            throw error;
         }
     }
 

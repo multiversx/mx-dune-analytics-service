@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { DuneClient, ColumnType, ContentType, DuneError } from "@duneanalytics/client-sdk";
@@ -66,16 +66,31 @@ export class DuneSenderService {
 
     async createLocalTable(tableName: string): Promise<boolean> {
         try {
-            await axios.post(`${this.appConfigService.getDuneSimulatorApiUrl()}/table/create`, {
-                tableName,
+            const url = `${this.appConfigService.getDuneSimulatorApiUrl()}/table/create`;
+            const payload = {
+                'namespace': this.appConfigService.getDuneNamespace(),
+                'table_name': tableName,
+                'description': 'test',
                 'schema': [
-                    { 'name': 'timestamp' },
-                    { 'name': 'volumeusd' },
+                    { 'name': 'timestamp', 'type': 'varchar' },
+                    { 'name': 'volumeusd', 'type': 'double' },
                 ],
+                "is_private": false
+            };
+
+            const response = await axios.post(url, JSON.stringify(payload), {
+                headers: {
+                    'content-type': 'application/json',
+                    'x-dune-api-key': this.appConfigService.getDuneApiKey(),
+                },
             });
+            console.log(response.data);
         } catch (error) {
-            this.logger.error(error);
-            return false;
+            if (axios.isAxiosError(error) && error.response) {
+                this.logger.log(error.response.data);
+                return false;
+            }
+
         }
         return true;
     }
@@ -93,14 +108,14 @@ export class DuneSenderService {
             console.log(response.data);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
+                this.logger.log(error.response.data);
                 if (error.response.status === 404) {
-                    Logger.log("Trying to create local table !");
+                    this.logger.log("Trying to create local table !");
                     const isTableCreated = await this.createLocalTable(tableName);
                     if (isTableCreated) {
-                        Logger.log("Table was created");
+                        this.logger.log("Table was created");
                     }
                 }
-                this.logger.log(error.response.data);
             }
             return false;
         }

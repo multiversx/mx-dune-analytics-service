@@ -12,12 +12,20 @@ export class CsvFileRepository {
     ) { }
 
     @ErrorLoggerAsync({ logArgs: true })
-    public async createTable(fileName: string, headers: string): Promise<void> {
-        await this.csvFileTableModel.create({
-            fileName,
-            headers,
-            records: [],
-        });
+    public async createTable(csvFileName: string, headers: string): Promise<void> {
+        const csvFile = await this.csvFileTableModel.findOne({ fileName: csvFileName });
+
+        if (!csvFile) {
+            await this.csvFileTableModel.create({
+                fileName: csvFileName,
+                headers,
+                records: [],
+            });
+        } else {
+            throw new HttpException('This table already exists', HttpStatus.CONFLICT)
+        }
+
+
     }
 
     @ErrorLoggerAsync({ logArgs: true })

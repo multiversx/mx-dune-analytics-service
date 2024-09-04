@@ -6,6 +6,9 @@ export class TableSchema {
     }
     @ApiProperty()
     name!: string;
+
+    @ApiProperty()
+    type!: string;
 }
 
 export class CreateTableBody {
@@ -14,9 +17,18 @@ export class CreateTableBody {
     }
 
     @ApiProperty()
-    tableName!: string;
+    namespace!: string;
+
+    @ApiProperty()
+    table_name!: string;
+
+    @ApiProperty()
+    description?: string = "";
 
     @ApiProperty()
     schema!: TableSchema[];
+
+    @ApiProperty()
+    is_private!: boolean;
 }
 
