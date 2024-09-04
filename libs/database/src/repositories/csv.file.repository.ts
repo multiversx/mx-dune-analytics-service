@@ -22,7 +22,7 @@ export class CsvFileRepository {
                 records: [],
             });
         } else {
-            throw new HttpException('This table already exists', HttpStatus.CONFLICT)
+            throw new HttpException('This table already exists', HttpStatus.CONFLICT);
         }
 
 

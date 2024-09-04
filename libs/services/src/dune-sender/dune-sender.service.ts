@@ -75,7 +75,7 @@ export class DuneSenderService {
                     { 'name': 'timestamp', 'type': 'varchar' },
                     { 'name': 'volumeusd', 'type': 'double' },
                 ],
-                "is_private": false
+                "is_private": false,
             };
 
             const response = await axios.post(url, JSON.stringify(payload), {

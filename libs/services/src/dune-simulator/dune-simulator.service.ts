@@ -34,7 +34,7 @@ export class DuneSimulatorService {
             'full_name': `dune.${body.namespace}.${body.table_name}`,
             'example_query': `select * from dune.${body.namespace}.${body.table_name}`,
             'already_existed': false,
-            'message': "Table created successfully"
+            'message': "Table created successfully",
         };
     }
 

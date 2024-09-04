@@ -19,7 +19,7 @@ export class DuneSimulatorController {
         console.log(body);
         try {
             const response = await this.duneSimulatorService.createTable(apiKey, contentType, body);
-            return response
+            return response;
         } catch (error) {
             throw error;
         }
