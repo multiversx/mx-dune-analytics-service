@@ -40,4 +40,15 @@ export class CsvFileRepository {
 
         await csvFile.save();
     }
+
+    @ErrorLoggerAsync({ logArgs: true })
+    public async getDocumentByTableName(csvFileName: string) {
+        const csvFile = await this.csvFileTableModel.findOne({ fileName: csvFileName });
+
+        if (!csvFile) {
+            throw new HttpException('This pair was not found', HttpStatus.NOT_FOUND);
+        }
+
+        return csvFile;
+    }
 }

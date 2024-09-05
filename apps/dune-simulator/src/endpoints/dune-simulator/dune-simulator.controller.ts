@@ -1,7 +1,8 @@
-import { Body, Controller, Param, Post, Headers } from "@nestjs/common";
+import { Body, Controller, Param, Post, Headers, Get, Res } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateTableBody } from "./entities";
 import { DuneSimulatorService } from "@libs/services/dune-simulator";
+import { Response } from "express";
 
 @Controller('/api/v1/table')
 @ApiTags('dune-simulator')
@@ -38,5 +39,22 @@ export class DuneSimulatorController {
         } catch (error) {
             throw error;
         }
+    }
+
+    @Get("/generate/chart/:token_pair")
+    async generateChart(
+        @Param('token_pair') pair: string,
+        @Res() res: Response,
+    ): Promise<any> {
+        try {
+            const imageBuffer = await this.duneSimulatorService.generateChart(pair);
+
+            res.setHeader('Content-Type', 'image/png');
+            res.send(imageBuffer);
+
+        } catch (error) {
+            throw error;
+        }
+
     }
 }
