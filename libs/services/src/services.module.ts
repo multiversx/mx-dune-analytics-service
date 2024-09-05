@@ -11,6 +11,7 @@ import { CsvRecordsService } from './records';
   imports: [
     DatabaseModule,
     DynamicModuleUtils.getCachingModule(),
+    DynamicModuleUtils.getRedlockModule(),
   ],
   providers: [
     EventsService,

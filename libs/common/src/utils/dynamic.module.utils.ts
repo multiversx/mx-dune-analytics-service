@@ -1,5 +1,5 @@
 import { ERDNEST_CONFIG_SERVICE } from "@multiversx/sdk-nestjs-common";
-import { CacheModule, RedisCacheModuleOptions } from "@multiversx/sdk-nestjs-cache";
+import { CacheModule, RedisCacheModuleOptions, RedlockConnectionOptions, RedlockModule } from "@multiversx/sdk-nestjs-cache";
 import { DynamicModule, Provider } from "@nestjs/common";
 import { ClientOptions, ClientProxyFactory, Transport } from "@nestjs/microservices";
 import { CommonConfigModule, CommonConfigService, SdkNestjsConfigServiceImpl } from "../config";
@@ -45,5 +45,18 @@ export class DynamicModuleUtils {
       },
       inject: [CommonConfigService],
     };
+  }
+
+  static getRedlockModule(): DynamicModule {
+    return RedlockModule.forRootAsync({
+      imports: [CommonConfigModule],
+      useFactory: (commonConfigService: CommonConfigService) => [
+        new RedlockConnectionOptions({
+          host: commonConfigService.config.redis.host,
+          port: commonConfigService.config.redis.port,
+        }),
+      ],
+      inject: [CommonConfigService],
+    });
   }
 }
