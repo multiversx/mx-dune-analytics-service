@@ -2,7 +2,9 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { CsvFileRepository } from "@libs/database/repositories";
 import { CreateTableBody } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
-
+import ChartJSImage from 'chartjs-to-image';
+import path from "path";
+import fs from "fs";
 @Injectable()
 export class DuneSimulatorService {
     private readonly logger = new OriginLogger(DuneSimulatorService.name);
@@ -74,138 +76,123 @@ export class DuneSimulatorService {
         return { 'rows_written': rowsWritten, 'bytes_written': bytesWritten };
     }
 
-    async generateChart(tableName: string) {
-        // Example data to create the chart
-        const ChartJSImage = require('chartjs-to-image')
-        let csvFile;
+    async generateChartPng(tableName: string) {
         try {
-            csvFile = await this.csvFileRepository.getDocumentByTableName(tableName);
+
+            const [points, xTitle, yTitle] = await this.getCsvDataFromDB(tableName);
+            const chart = this.createChart(points, xTitle, yTitle, tableName, 800, 600);
+            const buffer = await chart.toBinary();
+            return buffer;
+
         } catch (error) {
             throw error;
         }
+    }
 
-        const records = csvFile.records || [];
-        const headers = csvFile.headers ? csvFile.headers.split(',', 2) : [];
+    async generateChartHtml(tableName: string) {
+        try {
+            const [points, xTitle, yTitle] = await this.getCsvDataFromDB(tableName);
 
-        // Process the records
-        const timestamps = [];
-        const volumes: number[] = [];
+            const templatePath = path.join(process.cwd(), 'libs/services/src/dune-simulator', 'chart-template.html');
+            const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
-        for (const record of records) {
-            try {
-                const [timestamp, volumeusd] = record.split(',', 2);
-                const value = parseFloat(volumeusd);
-                if (!isNaN(value)) {
-                    if (volumes.length === 0 || volumes[volumes.length - 1] !== value) {
+            const updatedHtml = htmlTemplate
+                .replace(/{{chartTitle}}/g, tableName)
+                .replace(/'{{labels}}'/g, JSON.stringify(points.map(point => new Date(point[0]).toISOString())))
+                .replace(/'{{data}}'/g, JSON.stringify(points.map(point => point[1])))
+                .replace(/{{xTitle}}/g, xTitle)
+                .replace(/{{yTitle}}/g, yTitle);
 
-
-                        timestamps.push(timestamp.slice(0, 10));
-                        volumes.push(value);
-                    }
-                }
-            } catch (error) {
-                console.error(`Skipping invalid record: ${record}`);
-            }
+            return updatedHtml;
+        } catch (error) {
+            throw error;
         }
+    }
 
-        if (timestamps.length === 0 || volumes.length === 0) {
-            throw new HttpException('No valid data found for chart', HttpStatus.BAD_REQUEST);
-        }
 
-        // Generate the chart
-        // const chart = await new ChartJSImage()
-        //     .chart({
-        //         type: 'line',
-        //         data: {
-        //             labels: timestamps,
-        //             datasets: [{
-        //                 label: tableName,
-        //                 borderColor: 'rgb(75, 192, 192)',
-        //                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        //                 data: volumes,
-        //                 fill: true,
-        //                 pointRadius: 0,
-        //             }]
-        //         },
-        //         options: {
-        //             title: {
-        //                 display: true,
-        //                 text: `${tableName} Area Chart`
-        //             },
-        //             scales: {
-        //                 xAxes: [{
-        //                     scaleLabel: {
-        //                         display: true,
-        //                         labelString: headers[0] || 'X-axis'
-        //                     },
-        //                     ticks: {
-        //                         autoSkip: true,
-        //                         maxRotation: 0, // To ensure labels are readable
-        //                         minRotation: 0
-        //                     }
-        //                 }],
-        //                 yAxes: [{
-        //                     scaleLabel: {
-        //                         display: true,
-        //                         labelString: headers[1] || 'Y-axes'
-        //                     },
-        //                     ticks: {
-        //                         autoSkip: true
-        //                     }
-        //                 }]
-        //             }
-        //         }
-        //     })
-        //     .backgroundColor('white')
-        //     .width(800)
-        //     .height(500)
-        //     .toBuffer();
+    createChart(points: number[][],
+        xTitle: string,
+        yTitle: string,
+        chartName: string,
+        width: number,
+        height: number
+    ): ChartJSImage {
+        const downsampler = require('downsample-lttb');
+
+        const downsampledData: number[][] = points.length > 2500 ? downsampler.processData(points, 2500) : points;
+
         const chart = new ChartJSImage();
         chart.setConfig({
             type: 'line',
             data: {
-                labels: timestamps,
                 datasets: [{
-                    label: tableName,
+                    label: chartName,
                     borderColor: 'rgb(75, 192, 192)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    data: volumes,
+                    data: downsampledData.map(item => { return { x: item[0], y: item[1] }; }),
                     fill: true,
                     pointRadius: 0,
-                }]
+                }],
             },
             options: {
                 title: {
                     display: true,
-                    text: `${tableName} Area Chart`
+                    text: `${chartName} Area Chart`,
                 },
                 scales: {
                     xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'month',
+                            displayFormats: {
+                                month: 'MMM yyyy',
+                            },
+                            tooltipFormat: 'MMM yyyy',
+                        },
                         scaleLabel: {
                             display: true,
-                            labelString: headers[0] || 'X-axis'
+                            labelString: xTitle,
                         },
                         ticks: {
                             autoSkip: true,
-                            maxRotation: 0, // To ensure labels are readable
-                            minRotation: 0
-                        }
+                            maxRotation: 0,
+                            minRotation: 0,
+                        },
+
                     }],
                     yAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: headers[1] || 'Y-axes'
+                            labelString: yTitle,
                         },
                         ticks: {
-                            autoSkip: true
-                        }
-                    }]
-                }
-            }
+                            beginAtZero: true,
+                        },
+                    }],
+                },
+            },
         });
-        chart.setWidth(1200).setHeight(600);
+        chart.setWidth(width).setHeight(height);
 
-        const buff = await chart.toBinary();
-        return buff;
+        return chart;
+    }
+
+    async getCsvDataFromDB(tableName: string): Promise<[number[][], string, string]> {
+        const csvFile = await this.csvFileRepository.getDocumentByTableName(tableName);
+
+        const records = csvFile.records || [];
+        const headers = csvFile.headers ? csvFile.headers.split(',', 2) : [];
+
+        const points = [];
+
+        for (const record of records) {
+            const [timestamp, volumeusd] = record.split(',', 2);
+            const value = parseFloat(volumeusd);
+            if (!isNaN(value)) {
+                points.push([Date.parse(timestamp), value]);
+            }
+        }
+
+        return [points, headers[0], headers[1]];
     }
 }

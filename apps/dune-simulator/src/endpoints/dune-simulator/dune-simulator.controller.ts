@@ -41,16 +41,33 @@ export class DuneSimulatorController {
         }
     }
 
-    @Get("/generate/chart/:token_pair")
-    async generateChart(
+    @Get("/generate/chart/:token_pair/png")
+    async generateChartPng(
         @Param('token_pair') pair: string,
         @Res() res: Response,
     ): Promise<any> {
         try {
-            const imageBuffer = await this.duneSimulatorService.generateChart(pair);
+            const imageBuffer = await this.duneSimulatorService.generateChartPng(pair);
 
             res.setHeader('Content-Type', 'image/png');
             res.send(imageBuffer);
+
+        } catch (error) {
+            throw error;
+        }
+
+    }
+
+    @Get("/generate/chart/:token_pair/html")
+    async generateChartHtml(
+        @Param('token_pair') pair: string,
+        @Res() res: Response,
+    ): Promise<any> {
+        try {
+            const htmlContent = await this.duneSimulatorService.generateChartHtml(pair);
+
+            res.setHeader('Content-Type', 'text/html');
+            res.send(htmlContent);
 
         } catch (error) {
             throw error;
