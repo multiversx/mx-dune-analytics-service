@@ -24,6 +24,13 @@ export class CacheInfo {
       key: `csv-records-${csvFileName}`,
       ttl: Constants.oneDay(),
     };
+
+  }
+  static CSVHeaders(csvFileName: string) {
+    return {
+      key: `csv-headers-${csvFileName}`,
+      ttl: Constants.oneDay(),
+    };
   }
 }
 

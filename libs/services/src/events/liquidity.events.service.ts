@@ -7,7 +7,7 @@ import { DataService } from "../data";
 import { CsvRecordsService } from "../records";
 
 @Injectable()
-export class EventsService {
+export class LiquidityEventsService {
     lastFirstTokenReserves: { [key: string]: BigNumber } = {};
     lastSecondTokenReserves: { [key: string]: BigNumber } = {};
 
@@ -18,7 +18,7 @@ export class EventsService {
         private readonly csvRecordsService: CsvRecordsService,
     ) { }
 
-    public async eventsWebhook(eventsLog: EventLog[]): Promise<void> {
+    public async liquidityWebhook(eventsLog: EventLog[]): Promise<void> {
         let currentEvent: AddLiquidityEvent | RemoveLiquidityEvent;
 
         for (const eventLog of eventsLog) {
@@ -38,6 +38,7 @@ export class EventsService {
                 default:
                     continue;
             }
+
             const firstTokenId = currentEvent.getFirstToken()?.tokenID ?? "";
             const secondTokenId = currentEvent.getSecondToken()?.tokenID ?? "";
             const csvFileName = `${firstTokenId}_${secondTokenId}`;
@@ -49,7 +50,7 @@ export class EventsService {
                 for (let i = 0; i < diff; i++) {
                     this.lastDate[csvFileName].add(1, 'hour').startOf('hour');
                     const liquidity = await this.computeLiquidty(this.lastFirstTokenReserves[csvFileName], this.lastSecondTokenReserves[csvFileName], firstTokenId, secondTokenId, this.lastDate[csvFileName]);
-                    await this.csvRecordsService.pushRecord(csvFileName, [`${this.lastDate[csvFileName].format('YYYY-MM-DD HH:mm:ss.SSS')},${liquidity.decimalPlaces(4)}`]);
+                    await this.csvRecordsService.pushRecord(csvFileName, [`${this.lastDate[csvFileName].format('YYYY-MM-DD HH:mm:ss.SSS')},${liquidity.decimalPlaces(4)}`], ['timestamp', 'volumeusd']);
                 }
             }
 

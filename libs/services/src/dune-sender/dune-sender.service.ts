@@ -44,14 +44,16 @@ export class DuneSenderService {
 
     async createTable(tableName: string): Promise<boolean> {
         try {
+            console.log(tableName);
+            console.log(await this.csvRecordsService.getHeaders(tableName))
             const url = `${this.appConfigService.getDuneApiUrl()}/create`;
             const payload = {
                 'namespace': this.appConfigService.getDuneNamespace(),
                 'table_name': tableName,
                 'description': 'test',
                 'schema': [
-                    { 'name': 'timestamp', 'type': 'varchar' },
-                    { 'name': 'volumeusd', 'type': 'double' },
+                    { 'name': (await this.csvRecordsService.getHeaders(tableName))[0], 'type': 'varchar' },
+                    { 'name': (await this.csvRecordsService.getHeaders(tableName))[1], 'type': 'double' },
                 ],
                 "is_private": false,
             };
