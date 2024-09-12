@@ -44,8 +44,6 @@ export class DuneSenderService {
 
     async createTable(tableName: string): Promise<boolean> {
         try {
-            console.log(tableName);
-            console.log(await this.csvRecordsService.getHeaders(tableName))
             const url = `${this.appConfigService.getDuneApiUrl()}/create`;
             const payload = {
                 'namespace': this.appConfigService.getDuneNamespace(),

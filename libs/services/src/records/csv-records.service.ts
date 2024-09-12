@@ -56,8 +56,6 @@ export class CsvRecordsService {
                 await this.cachingService.set(CacheInfo.CSVHeaders(csvFileName).key, headers, CacheInfo.CSVHeaders(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
                 this.csvHeaders[csvFileName] = headers;
-                console.log("PUSHHHHHHHHHHHHHHHHHHH " + this.csvHeaders[csvFileName] + "       " + csvFileName);
-
             } else {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].push(...data);
@@ -92,7 +90,7 @@ export class CsvRecordsService {
 
     async getHeaders(csvFileName: string): Promise<readonly string[]> {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
-        console.log(this.csvHeaders[csvFileName]);
+
         return await this.redLockService.using('update-record', csvFileName, async () => {
             return this.csvHeaders[csvFileName] ?? [];
         }, this.keyExpiration);
