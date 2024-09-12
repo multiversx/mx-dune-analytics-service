@@ -25,7 +25,7 @@ export class HatomEventsService {
         for (const eventLog of eventsLog) {
             // We need to parse an event only when we receive data from events-log-service
 
-            eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
+            // eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
             if (eventLog.identifier === "borrow" && eventLog.topics[0] === '626f72726f775f6576656e74') // borrow_event
             {
                 const currentEvent = this.decodeTopics(eventLog);
