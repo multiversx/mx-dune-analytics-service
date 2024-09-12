@@ -7,7 +7,9 @@ import { RedlockService } from '@multiversx/sdk-nestjs-cache';
 export class CsvRecordsService {
     private csvRecords: Record<string, string[]> = {};
     private csvHeaders: Record<string, string[]> = {}
-    private readonly keyExpiration = 10000;
+    private readonly keyExpiration = 60000;
+    private readonly maxRetries = 100;
+    private readonly retryInterval = 5000;
 
     constructor(
         private readonly cachingService: CacheService,
@@ -37,7 +39,7 @@ export class CsvRecordsService {
             await this.cachingService.delete(`${CacheInfo.CSVHeaders(csvFileName).key}`)
             delete this.csvRecords[csvFileName];
             delete this.csvHeaders[csvFileName];
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
     async deleteFirstRecords(csvFileName: string, length: number) {
@@ -45,7 +47,7 @@ export class CsvRecordsService {
         await this.redLockService.using('update-record', csvFileName, async () => {
             this.csvRecords[csvFileName] = this.csvRecords[csvFileName].slice(length);
             await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName], CacheInfo.CSVHeaders(csvFileName).ttl);
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
     async pushRecord(csvFileName: string, data: string[], headers: string[]) {
@@ -60,7 +62,7 @@ export class CsvRecordsService {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].push(...data);
             }
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
     async unshiftRecord(csvFileName: string, data: string[]) {
@@ -73,7 +75,7 @@ export class CsvRecordsService {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data.concat(this.csvRecords[csvFileName]), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].unshift(...data);
             }
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
 
     }
 
@@ -85,7 +87,7 @@ export class CsvRecordsService {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
         return await this.redLockService.using('update-record', csvFileName, async () => {
             return this.csvRecords[csvFileName] ?? [];
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
     async getHeaders(csvFileName: string): Promise<readonly string[]> {
@@ -93,7 +95,7 @@ export class CsvRecordsService {
 
         return await this.redLockService.using('update-record', csvFileName, async () => {
             return this.csvHeaders[csvFileName] ?? [];
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
     async getAndDeleteRecord(csvFileName: string): Promise<string[]> {
@@ -106,7 +108,7 @@ export class CsvRecordsService {
             delete this.csvHeaders[csvFileName];
 
             return record;
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
 
         return response ?? [];
     }
@@ -125,7 +127,7 @@ export class CsvRecordsService {
         await this.redLockService.using('update-record', csvFileName, async () => {
             length = this.csvRecords[csvFileName].length;
             resultString += this.csvRecords[csvFileName].join("\n");
-        }, this.keyExpiration);
+        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
 
         return [resultString, length];
     }
