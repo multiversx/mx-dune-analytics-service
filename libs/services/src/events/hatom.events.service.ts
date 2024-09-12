@@ -30,8 +30,8 @@ export class HatomEventsService {
             {
                 const currentEvent = this.decodeTopics(eventLog);
                 const eventDate = moment.unix(eventLog.timestamp);
-                this.csvRecordsService.pushRecord(`total_borrows`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newTotalBorrows.shiftedBy(-5).decimalPlaces(4)},${currentEvent.amount}`], ['timestamp,borrowsVolumeusd']);
-                this.csvRecordsService.pushRecord(`borrows_for_${currentEvent.borrowerAddress}`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newAccountBorrow.shiftedBy(-5).decimalPlaces(4)}`], ['timestamp,accountBorrows'])
+                await this.csvRecordsService.pushRecord(`total_borrows`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newTotalBorrows.shiftedBy(-5).decimalPlaces(4)},${currentEvent.amount}`], ['timestamp,borrowsVolumeusd']);
+                await this.csvRecordsService.pushRecord(`borrows_for_${currentEvent.borrowerAddress}`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newAccountBorrow.shiftedBy(-5).decimalPlaces(4)}`], ['timestamp,accountBorrows']);
             }
 
         }

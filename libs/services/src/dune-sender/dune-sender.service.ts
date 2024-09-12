@@ -50,8 +50,8 @@ export class DuneSenderService {
                 'table_name': tableName,
                 'description': 'test',
                 'schema': [
-                    { 'name': (await this.csvRecordsService.getHeaders(tableName))[0], 'type': 'varchar' },
-                    { 'name': (await this.csvRecordsService.getHeaders(tableName))[1], 'type': 'double' },
+                    { 'name': (this.csvRecordsService.getHeaders(tableName))[0], 'type': 'varchar' },
+                    { 'name': (this.csvRecordsService.getHeaders(tableName))[1], 'type': 'double' },
                 ],
                 "is_private": false,
             };

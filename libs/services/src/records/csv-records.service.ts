@@ -6,7 +6,7 @@ import { RedlockService } from '@multiversx/sdk-nestjs-cache';
 @Injectable()
 export class CsvRecordsService {
     private csvRecords: Record<string, string[]> = {};
-    private csvHeaders: Record<string, string[]> = {}
+    private csvHeaders: Record<string, string[]> = {};
     private readonly keyExpiration = 60000;
     private readonly maxRetries = 100;
     private readonly retryInterval = 5000;
@@ -36,7 +36,7 @@ export class CsvRecordsService {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
         await this.redLockService.using('update-record', csvFileName, async () => {
             await this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
-            await this.cachingService.delete(`${CacheInfo.CSVHeaders(csvFileName).key}`)
+            await this.cachingService.delete(`${CacheInfo.CSVHeaders(csvFileName).key}`);
             delete this.csvRecords[csvFileName];
             delete this.csvHeaders[csvFileName];
         }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
@@ -83,19 +83,14 @@ export class CsvRecordsService {
         return this.csvRecords ?? {};
     }
 
-    async getRecord(csvFileName: string): Promise<readonly string[]> {
+    getRecord(csvFileName: string): readonly string[] {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
-        return await this.redLockService.using('update-record', csvFileName, async () => {
-            return this.csvRecords[csvFileName] ?? [];
-        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
+        return this.csvRecords[csvFileName] ?? [];
     }
 
-    async getHeaders(csvFileName: string): Promise<readonly string[]> {
+    getHeaders(csvFileName: string): readonly string[] {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
-
-        return await this.redLockService.using('update-record', csvFileName, async () => {
-            return this.csvHeaders[csvFileName] ?? [];
-        }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
+        return this.csvHeaders[csvFileName] ?? [];
     }
 
     async getAndDeleteRecord(csvFileName: string): Promise<string[]> {
