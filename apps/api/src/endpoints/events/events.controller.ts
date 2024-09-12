@@ -22,6 +22,7 @@ export class EventsController {
     async hatomWebhook(
         @Body() body: EventLog[],
     ): Promise<void> {
+        console.log(body);
         await this.hatomService.hatomWebhook(body);
     }
 

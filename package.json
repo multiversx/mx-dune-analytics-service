@@ -115,6 +115,9 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.2"
   },
+  "overrides": {
+    "bignumber.js": "^9.0.1"
+  },
   "_moduleAliases": {
     "@libs/common": "dist/libs/common"
   },
