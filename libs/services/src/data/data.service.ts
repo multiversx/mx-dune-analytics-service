@@ -33,7 +33,7 @@ export class DataService {
 
     async getTokenPriceRaw(tokenId: string, date: moment.Moment): Promise<BigNumber> {
         try {
-            if (tokenId.startsWith('USDC')) {
+            if (tokenId.startsWith('USD')) {
                 return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiCexUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
             }
             return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiXexchangeUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;

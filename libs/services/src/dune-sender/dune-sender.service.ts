@@ -13,7 +13,7 @@ export class DuneSenderService {
         private readonly appConfigService: AppConfigService,
     ) { }
 
-    @Cron(CronExpression.EVERY_10_SECONDS)
+    @Cron(CronExpression.EVERY_MINUTE)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -44,15 +44,25 @@ export class DuneSenderService {
 
     async createTable(tableName: string): Promise<boolean> {
         try {
+            const schema = {
+                'schema': [
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[0], 'type': 'varchar' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[1], 'type': 'varchar' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[2], 'type': 'double' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[3], 'type': 'double' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[4], 'type': 'double' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[5], 'type': 'double' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[6], 'type': 'double' },
+                    { 'name': this.csvRecordsService.getHeaders(tableName)[7], 'type': 'varchar' },
+                ],
+            };
+
             const url = `${this.appConfigService.getDuneApiUrl()}/create`;
             const payload = {
                 'namespace': this.appConfigService.getDuneNamespace(),
                 'table_name': tableName,
                 'description': 'test',
-                'schema': [
-                    { 'name': (this.csvRecordsService.getHeaders(tableName))[0], 'type': 'varchar' },
-                    { 'name': (this.csvRecordsService.getHeaders(tableName))[1], 'type': 'double' },
-                ],
+                'schema': schema.schema,
                 "is_private": false,
             };
 

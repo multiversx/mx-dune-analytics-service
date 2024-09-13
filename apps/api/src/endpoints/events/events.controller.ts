@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Param, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { EventLog } from "./entities/event.log";
 import { HatomEventsService, LiquidityEventsService } from "@libs/services/events";
@@ -18,11 +18,12 @@ export class EventsController {
         await this.liquidityService.liquidityWebhook(body);
     }
 
-    @Post("/hatom-webhook")
+    @Post("/hatom-webhook/:borrowed_token")
     async hatomWebhook(
         @Body() body: EventLog[],
+        @Param('borrowed_token') borrowedToken: string,
     ): Promise<void> {
-        await this.hatomService.hatomWebhook(body);
+        await this.hatomService.hatomWebhook(body, borrowedToken);
     }
 
 }

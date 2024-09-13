@@ -114,7 +114,7 @@ export class CsvRecordsService {
 
     async formatRecord(csvFileName: string): Promise<[string, number]> {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
-        let resultString: string = `${this.csvHeaders[csvFileName][0]},${this.csvHeaders[csvFileName][1]}\n`;
+        let resultString: string = `${this.csvHeaders[csvFileName].join(',')}\n`;
 
         let length: number = 0;
 

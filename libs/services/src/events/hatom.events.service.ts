@@ -4,6 +4,7 @@ import { Address } from "@multiversx/sdk-core";
 import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
 import moment from "moment";
+import { DataService } from "../data";
 
 interface BorrowEvent {
     eventName: string;
@@ -18,20 +19,27 @@ interface BorrowEvent {
 export class HatomEventsService {
     constructor(
         private readonly csvRecordsService: CsvRecordsService,
+        private readonly dataService: DataService,
     ) { }
 
-    public async hatomWebhook(eventsLog: EventLog[]): Promise<void> {
+    public async hatomWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
 
         for (const eventLog of eventsLog) {
             // We need to parse an event only when we receive data from events-log-service
-
             // eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
             if (eventLog.identifier === "borrow" && eventLog.topics[0] === '626f72726f775f6576656e74') // borrow_event
             {
                 const currentEvent = this.decodeTopics(eventLog);
                 const eventDate = moment.unix(eventLog.timestamp);
-                await this.csvRecordsService.pushRecord(`total_borrows`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newTotalBorrows.shiftedBy(-5).decimalPlaces(4)},${currentEvent.amount}`], ['timestamp,borrowsVolumeusd']);
-                await this.csvRecordsService.pushRecord(`borrows_for_${currentEvent.borrowerAddress}`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newAccountBorrow.shiftedBy(-5).decimalPlaces(4)}`], ['timestamp,accountBorrows']);
+                const headers = ['borrowerAddress', 'timestamp', 'borrowedAmount', 'borrowedAmountInEGLD', 'borrowedAmountInUSD', 'totalBorrowed', 'accountBorrowed', 'borrowedToken'];
+
+                const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
+                const tokenPrecision = await this.dataService.getTokenPrecision(borrowedToken);
+
+                await this.csvRecordsService.pushRecord(`hatomEvents`,
+                    [`${currentEvent.borrowerAddress},${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInEGLD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInUSD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newTotalBorrows.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newAccountBorrow.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedToken}`],
+                    headers);
+                // await this.csvRecordsService.pushRecord(`borrows_for_${currentEvent.borrowerAddress}`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newAccountBorrow.shiftedBy(-5).decimalPlaces(4)}`],);
             }
 
         }
@@ -49,4 +57,20 @@ export class HatomEventsService {
 
         return currentEvent;
     }
+
+    async convertBorrowedAmount(currentEvent: BorrowEvent, borrowedToken: string, date: moment.Moment): Promise<[BigNumber, BigNumber]> {
+        let borrowedAmountInEGLD, borrowedAmountInUSD;
+
+        const egldPrice = await this.dataService.getTokenPrice('WEGLD-bd4d79', date);
+        if (borrowedToken === 'WEGLD-bd4d79') {
+            borrowedAmountInEGLD = currentEvent.amount;
+            borrowedAmountInUSD = borrowedAmountInEGLD.multipliedBy(egldPrice);
+        } else {
+            borrowedAmountInUSD = currentEvent.amount;
+            borrowedAmountInEGLD = borrowedAmountInUSD.dividedBy(egldPrice);
+        }
+        return [borrowedAmountInEGLD, borrowedAmountInUSD];
+    }
 }
+
+
