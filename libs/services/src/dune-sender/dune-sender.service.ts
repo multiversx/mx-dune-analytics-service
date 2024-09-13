@@ -4,6 +4,8 @@ import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
+import fs from 'fs/promises'
+import path from 'path'
 @Injectable()
 export class DuneSenderService {
     private readonly logger = new OriginLogger(DuneSenderService.name);
@@ -13,7 +15,7 @@ export class DuneSenderService {
         private readonly appConfigService: AppConfigService,
     ) { }
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_5_MINUTES)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -34,11 +36,25 @@ export class DuneSenderService {
 
             const formattedCsvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
 
-            const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
+            // const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
+            const filePath = path.join(process.cwd(), formattedCsvFileName); // Specify the folder where CSVs will be saved
 
-            if (isRecordSent) {
+            try {
+                // Ensure the directory exists or create it
+                // await fs.mkdir(path.dirname(filePath), { recursive: true });
+                // // Write the CSV data to the file
+                await fs.writeFile(filePath, csvData);
+
+                this.logger.log(`CSV file created successfully: ${formattedCsvFileName}`);
+
+                // If needed, delete the first records after successfully creating the file
                 await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
+            } catch (err) {
+                this.logger.error(`Error writing CSV file: ${err}`);
             }
+            // if (isRecordSent) {
+            //     await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
+            // }
         }
     }
 
@@ -74,6 +90,7 @@ export class DuneSenderService {
             });
             this.logger.log(response.data);
         } catch (error) {
+            console.log(error);
             if (axios.isAxiosError(error) && error.response) {
                 this.logger.log(error.response.data);
                 return false;
