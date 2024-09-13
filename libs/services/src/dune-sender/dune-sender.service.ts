@@ -15,7 +15,7 @@ export class DuneSenderService {
         private readonly appConfigService: AppConfigService,
     ) { }
 
-    @Cron(CronExpression.EVERY_5_MINUTES)
+    @Cron(CronExpression.EVERY_MINUTE)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
