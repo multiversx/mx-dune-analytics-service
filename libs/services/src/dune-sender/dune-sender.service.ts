@@ -15,7 +15,7 @@ export class DuneSenderService {
         private readonly appConfigService: AppConfigService,
     ) { }
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_30_SECONDS)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -40,14 +40,10 @@ export class DuneSenderService {
             const filePath = path.join(process.cwd(), formattedCsvFileName); // Specify the folder where CSVs will be saved
 
             try {
-                // Ensure the directory exists or create it
-                // await fs.mkdir(path.dirname(filePath), { recursive: true });
-                // // Write the CSV data to the file
-                await fs.writeFile(filePath, csvData);
 
-                this.logger.log(`CSV file created successfully: ${formattedCsvFileName}`);
+                await fs.appendFile(filePath, csvData);
 
-                // If needed, delete the first records after successfully creating the file
+
                 await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
             } catch (err) {
                 this.logger.error(`Error writing CSV file: ${err}`);
