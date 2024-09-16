@@ -5,14 +5,18 @@ import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
 import { DataService } from "../data";
 import { CsvRecordsService } from "../records";
+import { CSVHeaders } from "@libs/entities";
 
 @Injectable()
 export class LiquidityEventsService {
-    lastFirstTokenReserves: { [key: string]: BigNumber } = {};
-    lastSecondTokenReserves: { [key: string]: BigNumber } = {};
+    private lastFirstTokenReserves: { [key: string]: BigNumber } = {};
+    private lastSecondTokenReserves: { [key: string]: BigNumber } = {};
 
-    lastDate: { [key: string]: moment.Moment } = {};
-
+    private lastDate: { [key: string]: moment.Moment } = {};
+    private readonly headers: CSVHeaders[] = [
+        { name: 'timestamp', type: 'varchar' },
+        { name: 'volumeusd', type: 'double' },
+    ];
     constructor(
         private readonly dataService: DataService,
         private readonly csvRecordsService: CsvRecordsService,
@@ -50,7 +54,7 @@ export class LiquidityEventsService {
                 for (let i = 0; i < diff; i++) {
                     this.lastDate[csvFileName].add(1, 'hour').startOf('hour');
                     const liquidity = await this.computeLiquidty(this.lastFirstTokenReserves[csvFileName], this.lastSecondTokenReserves[csvFileName], firstTokenId, secondTokenId, this.lastDate[csvFileName]);
-                    await this.csvRecordsService.pushRecord(csvFileName, [`${this.lastDate[csvFileName].format('YYYY-MM-DD HH:mm:ss.SSS')},${liquidity.decimalPlaces(4)}`], ['timestamp', 'volumeusd']);
+                    await this.csvRecordsService.pushRecord(csvFileName, [`${this.lastDate[csvFileName].format('YYYY-MM-DD HH:mm:ss.SSS')},${liquidity.decimalPlaces(4)}`], this.headers);
                 }
             }
 

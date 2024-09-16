@@ -1,17 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { CsvFileRepository } from "@libs/database/repositories";
+// import { CsvFileRepository } from "@libs/database/repositories";
 import { CreateTableBody } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 import ChartJSImage from 'chartjs-to-image';
 import path from "path";
 import fs from "fs";
+import { DynamicCollectionRepository } from "@libs/database/collections";
 @Injectable()
 export class DuneSimulatorService {
     private readonly logger = new OriginLogger(DuneSimulatorService.name);
 
     constructor(
-        private readonly csvFileRepository: CsvFileRepository,
-
+        // private readonly csvFileRepository: CsvFileRepository,
+        private readonly dynamicCollectionRepository: DynamicCollectionRepository,
     ) { }
 
     async createTable(apiKey: string, contentType: string, body: CreateTableBody): Promise<any> {
@@ -24,8 +25,9 @@ export class DuneSimulatorService {
         }
 
         try {
-            const formattedHeaders = body.schema.map(header => header.name).join(',');
-            await this.csvFileRepository.createTable(body.table_name, formattedHeaders);
+            // const formattedHeaders = body.schema.map(header => header.name).join(',');
+            // await this.csvFileRepository.createTable(body.table_name, formattedHeaders);
+            await this.dynamicCollectionRepository.createTable(body.table_name, body.schema);
         } catch (error) {
             throw error;
         }
@@ -55,25 +57,19 @@ export class DuneSimulatorService {
                 , HttpStatus.BAD_REQUEST);
         }
 
-        const keys = Object.keys(data[0]);
-
-        const stringData = data.map((item) => {
-            return keys.map((key) => item[key]).join(',');
-        });
-
         try {
-            await this.csvFileRepository.insertIntoTable(tableName, stringData);
+            await this.dynamicCollectionRepository.insertIntoTable(tableName, data);
         } catch (error) {
             this.logger.error(error);
             throw error;
         }
 
-        const rowsWritten = stringData.length;
+        const rowsWritten = data.length;
 
-        const csvString = stringData.join('\n');
-        const bytesWritten = Buffer.byteLength(csvString, 'utf8');
+        const jsonString = JSON.stringify(data);
 
-        return { 'rows_written': rowsWritten, 'bytes_written': bytesWritten };
+        const bytes_written = Buffer.byteLength(jsonString, 'utf8');
+        return { 'rows_written': rowsWritten, 'bytes_written': bytes_written };
     }
 
     async generateChartPng(tableName: string) {
@@ -178,21 +174,22 @@ export class DuneSimulatorService {
     }
 
     async getCsvDataFromDB(tableName: string): Promise<[number[][], string, string]> {
-        const csvFile = await this.csvFileRepository.getDocumentByTableName(tableName);
+        const records = await this.dynamicCollectionRepository.getCollectionDocuments(tableName);
 
-        const records = csvFile.records || [];
-        const headers = csvFile.headers ? csvFile.headers.split(',', 2) : [];
+        // const records = csvFile.records || [];
+        // const headers = csvFile.headers ? csvFile.headers.split(',', 2) : [];
 
         const points = [];
 
         for (const record of records) {
-            const [timestamp, volumeusd] = record.split(',', 2);
-            const value = parseFloat(volumeusd);
+            const xAxis = record.timestamp;
+            const yAxis = record.totalBorrowed;
+            const value = parseFloat(yAxis);
             if (!isNaN(value)) {
-                points.push([Date.parse(timestamp), value]);
+                points.push([Date.parse(xAxis), value]);
             }
         }
 
-        return [points, headers[0], headers[1]];
+        return [points, 'timestamp', 'totalBorrowed'];
     }
 }

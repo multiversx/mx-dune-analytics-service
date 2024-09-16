@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CacheService } from '@multiversx/sdk-nestjs-cache';
 import { CacheInfo } from '@libs/common';
 import { RedlockService } from '@multiversx/sdk-nestjs-cache';
+import { CSVHeaders } from '@libs/entities';
 
 @Injectable()
 export class CsvRecordsService {
     private csvRecords: Record<string, string[]> = {};
-    private csvHeaders: Record<string, string[]> = {};
+    private csvHeaders: Record<string, CSVHeaders[]> = {};
     private readonly keyExpiration = 60000;
     private readonly maxRetries = 100;
     private readonly retryInterval = 5000;
@@ -50,7 +51,7 @@ export class CsvRecordsService {
         }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
-    async pushRecord(csvFileName: string, data: string[], headers: string[]) {
+    async pushRecord(csvFileName: string, data: string[], headers: CSVHeaders[]) {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
         await this.redLockService.using('update-record', csvFileName, async () => {
             if (!this.csvRecords[csvFileName]) {
@@ -88,7 +89,7 @@ export class CsvRecordsService {
         return this.csvRecords[csvFileName] ?? [];
     }
 
-    getHeaders(csvFileName: string): readonly string[] {
+    getHeaders(csvFileName: string): CSVHeaders[] {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
         return this.csvHeaders[csvFileName] ?? [];
     }
@@ -114,8 +115,7 @@ export class CsvRecordsService {
 
     async formatRecord(csvFileName: string): Promise<[string, number]> {
         csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
-        // let resultString: string = `${this.csvHeaders[csvFileName].join(',')}\n`;
-        let resultString = '';
+        let resultString: string = `${this.csvHeaders[csvFileName].map((header) => header.name).join(',')}\n`;
 
         let length: number = 0;
 

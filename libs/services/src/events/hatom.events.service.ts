@@ -5,6 +5,7 @@ import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
 import moment from "moment";
 import { DataService } from "../data";
+import { CSVHeaders } from "@libs/entities";
 
 interface BorrowEvent {
     eventName: string;
@@ -17,6 +18,16 @@ interface BorrowEvent {
 
 @Injectable()
 export class HatomEventsService {
+    private readonly headers: CSVHeaders[] = [
+        { name: 'borrowerAddress', type: 'varchar' },
+        { name: 'timestamp', type: 'varchar' },
+        { name: 'borrowedAmount', type: 'double' },
+        { name: 'borrowedAmountInEGLD', type: 'double' },
+        { name: 'borrowedAmountInUSD', type: 'double' },
+        { name: 'totalBorrowed', type: 'double' },
+        { name: 'accountBorrowed', type: 'double' },
+        { name: 'borrowedToken', type: 'varchar' }
+    ];
     constructor(
         private readonly csvRecordsService: CsvRecordsService,
         private readonly dataService: DataService,
@@ -25,23 +36,19 @@ export class HatomEventsService {
     public async hatomWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
 
         for (const eventLog of eventsLog) {
-            // We need to parse an event only when we receive data from events-log-service
-            // eventLog.topics = eventLog.topics.map((topic) => Buffer.from(topic, 'hex').toString('base64'));
-            if (eventLog.identifier === "borrow" && eventLog.topics[0] === '626f72726f775f6576656e74') // borrow_event
-            {
+            const borrowEventInHex = '626f72726f775f6576656e74';
+
+            if (eventLog.identifier === "borrow" && eventLog.topics[0] === borrowEventInHex) {
                 const currentEvent = this.decodeTopics(eventLog);
                 const eventDate = moment.unix(eventLog.timestamp);
-                const headers = ['borrowerAddress', 'timestamp', 'borrowedAmount', 'borrowedAmountInEGLD', 'borrowedAmountInUSD', 'totalBorrowed', 'accountBorrowed', 'borrowedToken'];
 
                 const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
                 const tokenPrecision = await this.dataService.getTokenPrecision(borrowedToken);
 
                 await this.csvRecordsService.pushRecord(`hatomEvents`,
                     [`${currentEvent.borrowerAddress},${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInEGLD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInUSD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newTotalBorrows.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newAccountBorrow.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedToken}`],
-                    headers);
-                // await this.csvRecordsService.pushRecord(`borrows_for_${currentEvent.borrowerAddress}`, [`${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.newAccountBorrow.shiftedBy(-5).decimalPlaces(4)}`],);
+                    this.headers);
             }
-
         }
     }
 

@@ -4,8 +4,8 @@ import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
-import fs from 'fs/promises'
-import path from 'path'
+import { CSVHeaders } from "@libs/entities";
+
 @Injectable()
 export class DuneSenderService {
     private readonly logger = new OriginLogger(DuneSenderService.name);
@@ -15,7 +15,7 @@ export class DuneSenderService {
         private readonly appConfigService: AppConfigService,
     ) { }
 
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_10_SECONDS)
     @Lock({ name: 'send-csv-to-dune', verbose: false })
     async sendCsvRecordsToDune(): Promise<void> {
         const records: Record<string, string[]> = this.csvRecordsService.getRecords();
@@ -36,45 +36,25 @@ export class DuneSenderService {
 
             const formattedCsvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
 
-            // const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
-            const filePath = path.join(process.cwd(), formattedCsvFileName); // Specify the folder where CSVs will be saved
+            const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
 
-            try {
-
-                await fs.appendFile(filePath, csvData);
-
-
+            if (isRecordSent) {
                 await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
-            } catch (err) {
-                this.logger.error(`Error writing CSV file: ${err}`);
             }
-            // if (isRecordSent) {
-            //     await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
-            // }
         }
     }
 
     async createTable(tableName: string): Promise<boolean> {
         try {
-            const schema = {
-                'schema': [
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[0], 'type': 'varchar' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[1], 'type': 'varchar' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[2], 'type': 'double' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[3], 'type': 'double' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[4], 'type': 'double' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[5], 'type': 'double' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[6], 'type': 'double' },
-                    { 'name': this.csvRecordsService.getHeaders(tableName)[7], 'type': 'varchar' },
-                ],
-            };
+            const schema: CSVHeaders[] = this.csvRecordsService.getHeaders(tableName);
+            console.log(schema);
 
             const url = `${this.appConfigService.getDuneApiUrl()}/create`;
             const payload = {
                 'namespace': this.appConfigService.getDuneNamespace(),
                 'table_name': tableName,
                 'description': 'test',
-                'schema': schema.schema,
+                'schema': schema,
                 "is_private": false,
             };
 
@@ -86,7 +66,6 @@ export class DuneSenderService {
             });
             this.logger.log(response.data);
         } catch (error) {
-            console.log(error);
             if (axios.isAxiosError(error) && error.response) {
                 this.logger.log(error.response.data);
                 return false;
