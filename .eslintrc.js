@@ -79,7 +79,7 @@ module.exports = {
         },
         {
           from: 'libs/database',
-          allow: ['libs/common', 'libs/entities']
+          allow: ['libs/common', 'libs/entities', 'apps/dune-simulator']
         },
         {
           from: 'libs/services',

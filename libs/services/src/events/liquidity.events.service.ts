@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";
 import { DataService } from "../data";
 import { CsvRecordsService } from "../records";
-import { CSVHeaders } from "@libs/entities";
+import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 
 @Injectable()
 export class LiquidityEventsService {
@@ -13,7 +13,7 @@ export class LiquidityEventsService {
     private lastSecondTokenReserves: { [key: string]: BigNumber } = {};
 
     private lastDate: { [key: string]: moment.Moment } = {};
-    private readonly headers: CSVHeaders[] = [
+    private readonly headers: TableSchema[] = [
         { name: 'timestamp', type: 'varchar' },
         { name: 'volumeusd', type: 'double' },
     ];

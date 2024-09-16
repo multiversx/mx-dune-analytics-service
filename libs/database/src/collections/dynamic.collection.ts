@@ -46,7 +46,8 @@ export class DynamicCollectionRepository {
         }
 
         const dynamicModel = this.connection.db.collection(collectionName);
-        const collectionDocuments = await dynamicModel.find().toArray();
+
+        const collectionDocuments = await dynamicModel.find().sort({ ['timestamp']: 1 }).toArray();
 
         if (collectionDocuments.length === 0) {
             throw new HttpException('No documents found in this collection', HttpStatus.NOT_FOUND);

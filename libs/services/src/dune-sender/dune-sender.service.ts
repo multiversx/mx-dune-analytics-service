@@ -4,7 +4,7 @@ import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
-import { CSVHeaders } from "@libs/entities";
+import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 
 @Injectable()
 export class DuneSenderService {
@@ -46,8 +46,7 @@ export class DuneSenderService {
 
     async createTable(tableName: string): Promise<boolean> {
         try {
-            const schema: CSVHeaders[] = this.csvRecordsService.getHeaders(tableName);
-            console.log(schema);
+            const schema: TableSchema[] = this.csvRecordsService.getHeaders(tableName);
 
             const url = `${this.appConfigService.getDuneApiUrl()}/create`;
             const payload = {

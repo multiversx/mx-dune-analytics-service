@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
 import moment from "moment";
 import { DataService } from "../data";
-import { CSVHeaders } from "@libs/entities";
+import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 
 interface BorrowEvent {
     eventName: string;
@@ -18,15 +18,15 @@ interface BorrowEvent {
 
 @Injectable()
 export class HatomEventsService {
-    private readonly headers: CSVHeaders[] = [
-        { name: 'borrowerAddress', type: 'varchar' },
+    private readonly headers: TableSchema[] = [
+        { name: 'borrower_address', type: 'varchar' },
         { name: 'timestamp', type: 'varchar' },
-        { name: 'borrowedAmount', type: 'double' },
-        { name: 'borrowedAmountInEGLD', type: 'double' },
-        { name: 'borrowedAmountInUSD', type: 'double' },
-        { name: 'totalBorrowed', type: 'double' },
-        { name: 'accountBorrowed', type: 'double' },
-        { name: 'borrowedToken', type: 'varchar' }
+        { name: 'borrowed_amount', type: 'double' },
+        { name: 'borrowed_amount_in_egld', type: 'double' },
+        { name: 'borrowed_amount_in_usd', type: 'double' },
+        { name: 'total_borrowed', type: 'double' },
+        { name: 'account_borrowed', type: 'double' },
+        { name: 'borrowed_token', type: 'varchar' },
     ];
     constructor(
         private readonly csvRecordsService: CsvRecordsService,
@@ -45,7 +45,7 @@ export class HatomEventsService {
                 const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
                 const tokenPrecision = await this.dataService.getTokenPrecision(borrowedToken);
 
-                await this.csvRecordsService.pushRecord(`hatomEvents`,
+                await this.csvRecordsService.pushRecord(`hatom_borrow_events`,
                     [`${currentEvent.borrowerAddress},${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInEGLD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInUSD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newTotalBorrows.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newAccountBorrow.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedToken}`],
                     this.headers);
             }

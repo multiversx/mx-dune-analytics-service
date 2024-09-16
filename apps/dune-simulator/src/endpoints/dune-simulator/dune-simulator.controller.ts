@@ -41,13 +41,16 @@ export class DuneSimulatorController {
         }
     }
 
-    @Get("/generate/chart/:token_pair/png")
+    @Get("/generate/chart/:table_name/:x_axis/:y_axis/png")
     async generateChartPng(
-        @Param('token_pair') pair: string,
+        @Param('table_name') tableName: string,
+        @Param('x_axis') xAxis: string,
+        @Param('y_axis') yAxis: string,
         @Res() res: Response,
     ): Promise<any> {
         try {
-            const imageBuffer = await this.duneSimulatorService.generateChartPng(pair);
+
+            const imageBuffer = await this.duneSimulatorService.generateChartPng(tableName, xAxis, yAxis);
 
             res.setHeader('Content-Type', 'image/png');
             res.send(imageBuffer);
@@ -58,13 +61,15 @@ export class DuneSimulatorController {
 
     }
 
-    @Get("/generate/chart/:token_pair/html")
+    @Get("/generate/chart/:table_name/:x_axis/:y_axis/html")
     async generateChartHtml(
-        @Param('token_pair') pair: string,
+        @Param('table_name') tableName: string,
+        @Param('x_axis') xAxis: string,
+        @Param('y_axis') yAxis: string,
         @Res() res: Response,
     ): Promise<any> {
         try {
-            const htmlContent = await this.duneSimulatorService.generateChartHtml(pair);
+            const htmlContent = await this.duneSimulatorService.generateChartHtml(tableName, xAxis, yAxis);
 
             res.setHeader('Content-Type', 'text/html');
             res.send(htmlContent);

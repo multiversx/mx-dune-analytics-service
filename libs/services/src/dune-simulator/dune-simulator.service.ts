@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-// import { CsvFileRepository } from "@libs/database/repositories";
 import { CreateTableBody } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 import ChartJSImage from 'chartjs-to-image';
@@ -11,7 +10,6 @@ export class DuneSimulatorService {
     private readonly logger = new OriginLogger(DuneSimulatorService.name);
 
     constructor(
-        // private readonly csvFileRepository: CsvFileRepository,
         private readonly dynamicCollectionRepository: DynamicCollectionRepository,
     ) { }
 
@@ -25,8 +23,6 @@ export class DuneSimulatorService {
         }
 
         try {
-            // const formattedHeaders = body.schema.map(header => header.name).join(',');
-            // await this.csvFileRepository.createTable(body.table_name, formattedHeaders);
             await this.dynamicCollectionRepository.createTable(body.table_name, body.schema);
         } catch (error) {
             throw error;
@@ -57,6 +53,7 @@ export class DuneSimulatorService {
                 , HttpStatus.BAD_REQUEST);
         }
 
+
         try {
             await this.dynamicCollectionRepository.insertIntoTable(tableName, data);
         } catch (error) {
@@ -72,11 +69,11 @@ export class DuneSimulatorService {
         return { 'rows_written': rowsWritten, 'bytes_written': bytes_written };
     }
 
-    async generateChartPng(tableName: string) {
+    async generateChartPng(tableName: string, xAxis: string, yAxis: string) {
         try {
 
-            const [points, xTitle, yTitle] = await this.getCsvDataFromDB(tableName);
-            const chart = this.createChart(points, xTitle, yTitle, tableName, 800, 600);
+            const points = await this.getCsvDataFromDB(tableName, xAxis, yAxis);
+            const chart = this.createChart(points, xAxis, yAxis, tableName, 800, 600);
             const buffer = await chart.toBinary();
             return buffer;
 
@@ -85,9 +82,9 @@ export class DuneSimulatorService {
         }
     }
 
-    async generateChartHtml(tableName: string) {
+    async generateChartHtml(tableName: string, xAxis: string, yAxis: string) {
         try {
-            const [points, xTitle, yTitle] = await this.getCsvDataFromDB(tableName);
+            const points = await this.getCsvDataFromDB(tableName, xAxis, yAxis);
 
             const templatePath = path.join(process.cwd(), 'libs/services/src/dune-simulator', 'chart-template.html');
             const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
@@ -96,8 +93,8 @@ export class DuneSimulatorService {
                 .replace(/{{chartTitle}}/g, tableName)
                 .replace(/'{{labels}}'/g, JSON.stringify(points.map(point => new Date(point[0]).toISOString())))
                 .replace(/'{{data}}'/g, JSON.stringify(points.map(point => point[1])))
-                .replace(/{{xTitle}}/g, xTitle)
-                .replace(/{{yTitle}}/g, yTitle);
+                .replace(/{{xTitle}}/g, xAxis)
+                .replace(/{{yTitle}}/g, yAxis);
 
             return updatedHtml;
         } catch (error) {
@@ -173,23 +170,22 @@ export class DuneSimulatorService {
         return chart;
     }
 
-    async getCsvDataFromDB(tableName: string): Promise<[number[][], string, string]> {
+    async getCsvDataFromDB(tableName: string, xAxis: string, yAxis: string): Promise<number[][]> {
         const records = await this.dynamicCollectionRepository.getCollectionDocuments(tableName);
-
-        // const records = csvFile.records || [];
-        // const headers = csvFile.headers ? csvFile.headers.split(',', 2) : [];
 
         const points = [];
 
-        for (const record of records) {
-            const xAxis = record.timestamp;
-            const yAxis = record.totalBorrowed;
-            const value = parseFloat(yAxis);
-            if (!isNaN(value)) {
-                points.push([Date.parse(xAxis), value]);
+        try {
+            for (const record of records) {
+                const value = parseFloat(record[yAxis]);
+                if (!isNaN(value)) {
+                    points.push([Date.parse(record[xAxis]), value]);
+                }
             }
+        } catch (error) {
+            throw error;
         }
 
-        return [points, 'timestamp', 'totalBorrowed'];
+        return points;
     }
 }
