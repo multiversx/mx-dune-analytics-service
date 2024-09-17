@@ -7,15 +7,10 @@ export interface Config {
       privatePort: number;
       useCachingInterceptor: boolean;
     };
-    cacheWarmer: {
+    duneSimulator: {
       port: number;
-    };
-    queueWorker: {
-      port: number;
-    };
-    transactionsProcessor: {
-      port: number;
-      maxLookBehind: number;
+      privatePort: number;
+      useCachingInterceptor: boolean;
     };
   };
   libs: {
@@ -23,6 +18,9 @@ export interface Config {
       network: "devnet" | "testnet" | "mainnet";
       urls: {
         api: string;
+        dataApiCex: string;
+        dataApiXexchange: string;
+        duneApi: string;
       };
       database: {
         host: string;
@@ -35,6 +33,12 @@ export interface Config {
       redis: {
         host: string;
         port: number;
+      };
+      features: {
+        dune: {
+          namespace: string;
+          apiKey: string;
+        };
       };
       nativeAuth: {
         maxExpirySeconds: number;

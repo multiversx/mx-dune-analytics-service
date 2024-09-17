@@ -1,0 +1,39 @@
+{
+    "size": 5000,
+    "query": {
+        "bool": {
+            "filter": [
+                {
+                    "range": {
+                        "timestamp": {
+                            "gte": "2024-01-01T00:00:00",
+                            "lt": "2024-09-02T10:00:00",
+                            "format": "strict_date_optional_time"
+                        }
+                    }
+                },
+                {
+                    "nested": {
+                        "path": "events",
+                        "query": {
+                            "bool": {
+                                "filter": [
+                                    {
+                                        "term": {
+                                            "events.identifier": "addLiquidity"
+                                        }
+                                    },
+                                    {
+                                        "term": {
+                                            "events.address": "erd1qqqqqqqqqqqqqpgq5jnjpsukhl295ry3wjrd3gtff0amrgux2jpsz3reum"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

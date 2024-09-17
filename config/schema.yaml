@@ -4,13 +4,10 @@ apps:
     port: integer
     privatePort: integer
     useCachingInterceptor: boolean
-  cacheWarmer:
+  duneSimulator:
     port: integer
-  queueWorker:
-    port: integer
-  transactionsProcessor:
-    port: integer
-    maxLookBehind: integer
+    privatePort: integer
+    useCachingInterceptor: boolean
 libs:
   common:
     network:
@@ -18,6 +15,9 @@ libs:
       enum: [devnet, testnet, mainnet]
     urls:
       api: string
+      dataApiCex: string
+      dataApiXexchange: string
+      duneApi: string
     database:
       host: string
       port: integer
@@ -34,6 +34,10 @@ libs:
     redis:
       host: string
       port: integer
+    features:
+      dune:
+        namespace: string
+        apiKey: string
     nativeAuth:
       maxExpirySeconds:
         type: integer

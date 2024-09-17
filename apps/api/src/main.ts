@@ -53,7 +53,7 @@ async function bootstrap() {
   const description = readFileSync(join(__dirname, '..', 'docs', 'swagger.md'), 'utf8');
 
   const config = new DocumentBuilder()
-    .setTitle('MultiversX Microservice API')
+    .setTitle('MultiversX Microservice Volume Parser API')
     .setDescription(description)
     .setVersion('1.0.0')
     .setExternalDoc('MultiversX Docs', 'https://docs.multiversx.com')

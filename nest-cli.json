@@ -35,13 +35,13 @@
         ]
       }
     },
-    "transactions-processor": {
+    "dune-simulator": {
       "type": "application",
-      "root": "apps/transactions-processor",
+      "root": "apps/dune-simulator",
       "entryFile": "main",
-      "sourceRoot": "apps/transactions-processor/src",
+      "sourceRoot": "apps/dune-simulator/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/transactions-processor/tsconfig.app.json",
+        "tsConfigPath": "apps/dune-simulator/tsconfig.app.json",
         "assets": [
           {
             "include": "../config/config.yaml",
@@ -50,44 +50,10 @@
           {
             "include": "../config/schema.yaml",
             "outDir": "./dist/config"
-          }
-        ]
-      }
-    },
-    "queue-worker": {
-      "type": "application",
-      "root": "apps/queue-worker",
-      "entryFile": "main",
-      "sourceRoot": "apps/queue-worker/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/queue-worker/tsconfig.app.json",
-        "assets": [
-          {
-            "include": "../config/config.yaml",
-            "outDir": "./dist/config"
           },
           {
-            "include": "../config/schema.yaml",
-            "outDir": "./dist/config"
-          }
-        ]
-      }
-    },
-    "cache-warmer": {
-      "type": "application",
-      "root": "apps/cache-warmer",
-      "entryFile": "main",
-      "sourceRoot": "apps/cache-warmer/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/cache-warmer/tsconfig.app.json",
-        "assets": [
-          {
-            "include": "../config/config.yaml",
-            "outDir": "./dist/config"
-          },
-          {
-            "include": "../config/schema.yaml",
-            "outDir": "./dist/config"
+            "include": "../docs/swagger.md",
+            "outDir": "./dist/apps/dune-simulator/docs"
           }
         ]
       }

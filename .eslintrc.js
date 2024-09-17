@@ -28,16 +28,8 @@ module.exports = {
         pattern: 'apps/api',
       },
       {
-        type: 'apps/cache-warmer',
-        pattern: 'apps/cache-warmer',
-      },
-      {
-        type: 'apps/queue-worker',
-        pattern: 'apps/queue-worker',
-      },
-      {
-        type: 'apps/transactions-processor',
-        pattern: 'apps/transactions-processor',
+        type: 'apps/dune-simulator',
+        pattern: 'apps/dune-simulator',
       },
       {
         type: 'libs/common',
@@ -82,24 +74,16 @@ module.exports = {
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
-          from: 'apps/cache-warmer',
-          allow: ['libs/common', 'libs/entities', 'libs/services']
-        },
-        {
-          from: 'apps/queue-worker',
-          allow: ['libs/common', 'libs/entities', 'libs/services']
-        },
-        {
-          from: 'apps/transactions-processor',
+          from: 'apps/dune-simulator',
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
           from: 'libs/database',
-          allow: ['libs/common', 'libs/entities']
+          allow: ['libs/common', 'libs/entities', 'apps/dune-simulator']
         },
         {
           from: 'libs/services',
-          allow: ['libs/common', 'libs/entities', 'libs/database']
+          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/api', 'apps/dune-simulator']
         },
         {
           from: 'libs/common',
