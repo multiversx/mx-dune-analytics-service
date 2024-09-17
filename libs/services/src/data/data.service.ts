@@ -23,16 +23,29 @@ export class DataService {
         private readonly appConfigService: AppConfigService,
     ) { }
 
-    async getTokenPrice(tokenId: string, date: moment.Moment): Promise<BigNumber> {
+    async getTokenPrice(tokenId: string, date: moment.Moment, market?: string): Promise<BigNumber> {
         return await this.cachingService.getOrSet(
             CacheInfo.TokenPrice(tokenId, date).key,
-            async () => await this.getTokenPriceRaw(tokenId, date),
+            async () => await this.getTokenPriceRaw(tokenId, date, market),
             CacheInfo.TokenPrice(tokenId, date).ttl
         );
     }
 
-    async getTokenPriceRaw(tokenId: string, date: moment.Moment): Promise<BigNumber> {
+    async getTokenPriceRaw(tokenId: string, date: moment.Moment, market?: string): Promise<BigNumber> {
         try {
+            if (market) {
+                switch (market) {
+                    case 'hatom':
+                        return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiHatomUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+                    case 'xexchange':
+                        return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiXexchangeUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+                    case 'cex':
+                        return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiCexUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
+                    default:
+                        throw Error('Invalid market !');
+                }
+            }
+
             if (tokenId.startsWith('USD')) {
                 return (await axios.get<TokenPrice>(`${this.appConfigService.getDataApiCexUrl()}/${tokenId}?date=${date.format('YYYY-MM-DD')}`)).data.price;
             }

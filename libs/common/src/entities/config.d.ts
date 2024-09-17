@@ -20,6 +20,7 @@ export interface Config {
         api: string;
         dataApiCex: string;
         dataApiXexchange: string;
+        dataApiHatom: string;
         duneApi: string;
       };
       database: {
