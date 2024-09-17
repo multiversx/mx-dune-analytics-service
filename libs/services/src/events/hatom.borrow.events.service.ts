@@ -7,7 +7,7 @@ import moment from "moment";
 import { DataService } from "../data";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { joinCsvAttributes } from "libs/services/utils";
-import { borrowEvent } from "./hex-constants";
+import { borrowEvent } from "../../utils/hex-constants";
 
 interface BorrowEvent {
     eventName: string;
@@ -67,11 +67,11 @@ export class HatomBorrowEventsService {
     decodeTopics(eventLog: EventLog): BorrowEvent {
         const currentEvent: BorrowEvent = {
             eventName: Buffer.from(eventLog.topics[0], 'hex').toString(),
-            borrowerAddress: Address.newFromHex(Buffer.from(eventLog.topics[1], 'hex').toString('hex')).toBech32(),
-            amount: BigNumber(Buffer.from(eventLog.topics[2], 'hex').toString('hex'), 16),
-            newAccountBorrow: BigNumber(Buffer.from(eventLog.topics[3], 'hex').toString('hex'), 16),
-            newTotalBorrows: BigNumber(Buffer.from(eventLog.topics[4], 'hex').toString('hex'), 16),
-            newBorrowerIndex: BigNumber(Buffer.from(eventLog.topics[5], 'hex').toString('hex'), 16),
+            borrowerAddress: Address.newFromHex(eventLog.topics[1]).toBech32(),
+            amount: BigNumber(eventLog.topics[2], 16),
+            newAccountBorrow: BigNumber(eventLog.topics[3], 16),
+            newTotalBorrows: BigNumber(eventLog.topics[4], 16),
+            newBorrowerIndex: BigNumber(eventLog.topics[5], 16),
         };
 
         return currentEvent;
