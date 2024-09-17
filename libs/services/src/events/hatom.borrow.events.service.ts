@@ -6,10 +6,10 @@ import { CsvRecordsService } from "../records";
 import moment from "moment";
 import { DataService } from "../data";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
-import { joinCsvAttributes } from "libs/services/utils";
+import { decodeTopics, HatomEvent, joinCsvAttributes } from "libs/services/utils";
 import { borrowEvent } from "../../utils/hex-constants";
 
-interface BorrowEvent {
+interface BorrowEvent extends HatomEvent {
     eventName: string;
     borrowerAddress: string;
     amount: BigNumber;
@@ -38,7 +38,9 @@ export class HatomBorrowEventsService {
     public async hatomBorrowWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
         for (const eventLog of eventsLog) {
             if (eventLog.identifier === "borrow" && eventLog.topics[0] === borrowEvent) {
-                const currentEvent = this.decodeTopics(eventLog);
+                const properties: string[] = ["eventName", "borrowerAddress", "amount", "newAccountBorrow", "newTotalBorrows", "newBorrowerIndex"];
+                const types: string[] = ["String", "Address", "BigNumber", "BigNumber", "BigNumber", "BigNumber"];
+                const currentEvent: BorrowEvent = decodeTopics(properties, eventLog.topics, types) as BorrowEvent;
                 const eventDate = moment.unix(eventLog.timestamp);
 
                 const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
@@ -63,33 +65,4 @@ export class HatomBorrowEventsService {
             }
         }
     }
-
-    decodeTopics(eventLog: EventLog): BorrowEvent {
-        const currentEvent: BorrowEvent = {
-            eventName: Buffer.from(eventLog.topics[0], 'hex').toString(),
-            borrowerAddress: Address.newFromHex(eventLog.topics[1]).toBech32(),
-            amount: BigNumber(eventLog.topics[2], 16),
-            newAccountBorrow: BigNumber(eventLog.topics[3], 16),
-            newTotalBorrows: BigNumber(eventLog.topics[4], 16),
-            newBorrowerIndex: BigNumber(eventLog.topics[5], 16),
-        };
-
-        return currentEvent;
-    }
-
-    async convertBorrowedAmount(currentEvent: BorrowEvent, borrowedToken: string, date: moment.Moment): Promise<[BigNumber, BigNumber]> {
-        let borrowedAmountInEGLD, borrowedAmountInUSD;
-
-        const egldPrice = await this.dataService.getTokenPrice('WEGLD-bd4d79', date);
-        if (borrowedToken === 'WEGLD-bd4d79') {
-            borrowedAmountInEGLD = currentEvent.amount;
-            borrowedAmountInUSD = borrowedAmountInEGLD.multipliedBy(egldPrice);
-        } else {
-            borrowedAmountInUSD = currentEvent.amount;
-            borrowedAmountInEGLD = borrowedAmountInUSD.dividedBy(egldPrice);
-        }
-        return [borrowedAmountInEGLD, borrowedAmountInUSD];
-    }
 }
-
-

@@ -27,7 +27,7 @@ export class EventsController {
         await this.hatomBorrowService.hatomBorrowWebhook(body, borrowedToken);
     }
 
-    @Post("/hatom-liquidation-webhook/:borrowed_token")
+    @Post("/hatom-liquidation-webhook")
     async hatomLiquidationWebhook(
         @Body() body: EventLog[],
     ): Promise<void> {
