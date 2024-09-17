@@ -37,9 +37,9 @@ export class HatomBorrowEventsService {
     public async hatomBorrowWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
 
         for (const eventLog of eventsLog) {
-            const decodedEventTopicIdentifier = Buffer.from(eventLog.topics[0], 'hex').toString();
+            const borrowEventInHex = '626f72726f775f6576656e74'; // 'borrow_event'
 
-            if (eventLog.identifier === "borrow" && decodedEventTopicIdentifier === 'borrow_event') {
+            if (eventLog.identifier === "borrow" && eventLog.topics[0] === borrowEventInHex) {
                 const currentEvent = this.decodeTopics(eventLog);
                 const eventDate = moment.unix(eventLog.timestamp);
 
