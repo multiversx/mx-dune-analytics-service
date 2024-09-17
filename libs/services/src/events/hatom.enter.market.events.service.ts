@@ -79,12 +79,11 @@ export class HatomEnterMarketEventsService {
     }
 
     async convertTokenValue(currentEvent: BorrowEvent, tokenID: string, date: moment.Moment): Promise<[BigNumber, BigNumber]> {
-        let valueInEgld, valueInUsd;
-        const egldPrice = await this.dataService.getTokenPrice('WEGLD-bd4d79', date)
+        const egldPrice = await this.dataService.getTokenPrice('WEGLD-bd4d79', date);
         const tokenPrice = await this.dataService.getTokenPrice(tokenID, date, 'hatom');
 
-        valueInUsd = currentEvent.amount.multipliedBy(tokenPrice);
-        valueInEgld = valueInUsd.dividedBy(egldPrice);
+        const valueInUsd = currentEvent.amount.multipliedBy(tokenPrice);
+        const valueInEgld = valueInUsd.dividedBy(egldPrice);
 
         return [valueInEgld, valueInUsd];
     }
