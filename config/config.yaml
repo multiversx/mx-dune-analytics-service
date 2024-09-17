@@ -20,7 +20,7 @@ libs:
       port: 27017
       # username: 'root'
       # password: 'root'
-      name: 'example'
+      name: 'duneDB'
       tlsAllowInvalidCertificates: true
     redis:
       host: '127.0.0.1'
