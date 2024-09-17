@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { EventLog } from "apps/api/src/endpoints/events/entities";
-import { Address } from "@multiversx/sdk-core";
 import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
 import moment from "moment";
@@ -64,5 +63,19 @@ export class HatomBorrowEventsService {
                 );
             }
         }
+    }
+
+    async convertBorrowedAmount(currentEvent: BorrowEvent, borrowedToken: string, date: moment.Moment): Promise<[BigNumber, BigNumber]> {
+        let borrowedAmountInEGLD, borrowedAmountInUSD;
+
+        const egldPrice = await this.dataService.getTokenPrice('WEGLD-bd4d79', date);
+        if (borrowedToken === 'WEGLD-bd4d79') {
+            borrowedAmountInEGLD = currentEvent.amount;
+            borrowedAmountInUSD = borrowedAmountInEGLD.multipliedBy(egldPrice);
+        } else {
+            borrowedAmountInUSD = currentEvent.amount;
+            borrowedAmountInEGLD = borrowedAmountInUSD.dividedBy(egldPrice);
+        }
+        return [borrowedAmountInEGLD, borrowedAmountInUSD];
     }
 }
