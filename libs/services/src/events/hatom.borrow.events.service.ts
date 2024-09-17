@@ -17,7 +17,7 @@ interface BorrowEvent {
 }
 
 @Injectable()
-export class HatomEventsService {
+export class HatomBorrowEventsService {
     private readonly headers: TableSchema[] = [
         { name: 'borrower_address', type: 'varchar' },
         { name: 'timestamp', type: 'varchar' },
@@ -33,7 +33,7 @@ export class HatomEventsService {
         private readonly dataService: DataService,
     ) { }
 
-    public async hatomWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
+    public async hatomBorrowWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
 
         for (const eventLog of eventsLog) {
             const borrowEventInHex = '626f72726f775f6576656e74';

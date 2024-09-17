@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { DatabaseModule } from '@libs/database';
 import { DynamicModuleUtils } from '@libs/common';
-import { HatomEventsService, LiquidityEventsService } from './events';
+import { HatomBorrowEventsService, LiquidityEventsService } from './events';
 import { DataService } from './data';
 import { DuneSenderService } from './dune-sender';
 import { CsvRecordsService } from './records';
@@ -18,14 +18,14 @@ import { CsvRecordsService } from './records';
     DataService,
     DuneSenderService,
     CsvRecordsService,
-    HatomEventsService,
+    HatomBorrowEventsService,
   ],
   exports: [
     LiquidityEventsService,
     DataService,
     DuneSenderService,
     CsvRecordsService,
-    HatomEventsService,
+    HatomBorrowEventsService,
   ],
 })
 export class ServicesModule { }
