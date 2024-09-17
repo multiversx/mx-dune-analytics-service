@@ -6,6 +6,7 @@ import { CsvRecordsService } from "../records";
 import moment from "moment";
 import { DataService } from "../data";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
+import { joinCsvAttributes } from "libs/services/utils";
 
 interface BorrowEvent {
     eventName: string;
@@ -45,9 +46,22 @@ export class HatomBorrowEventsService {
                 const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
                 const tokenPrecision = await this.dataService.getTokenPrecision(borrowedToken);
 
-                await this.csvRecordsService.pushRecord(`hatom_borrow_events`,
-                    [`${currentEvent.borrowerAddress},${eventDate.format('YYYY-MM-DD HH:mm:ss.SSS')},${currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInEGLD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedAmountInUSD.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newTotalBorrows.shiftedBy(-tokenPrecision).decimalPlaces(4)},${currentEvent.newAccountBorrow.shiftedBy(-tokenPrecision).decimalPlaces(4)},${borrowedToken}`],
-                    this.headers);
+                await this.csvRecordsService.pushRecord(
+                    `hatom_borrow_events`,
+                    [
+                        joinCsvAttributes(
+                            currentEvent.borrowerAddress,
+                            eventDate.format('YYYY-MM-DD HH:mm:ss.SSS'),
+                            currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            borrowedAmountInEGLD.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            borrowedAmountInUSD.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            currentEvent.newTotalBorrows.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            currentEvent.newAccountBorrow.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            borrowedToken,
+                        ),
+                    ],
+                    this.headers
+                );
             }
         }
     }

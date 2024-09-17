@@ -6,6 +6,7 @@ import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchang
 import { DataService } from "../data";
 import { CsvRecordsService } from "../records";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
+import { joinCsvAttributes } from "libs/services/utils";
 
 @Injectable()
 export class LiquidityEventsService {
@@ -54,7 +55,15 @@ export class LiquidityEventsService {
                 for (let i = 0; i < diff; i++) {
                     this.lastDate[csvFileName].add(1, 'hour').startOf('hour');
                     const liquidity = await this.computeLiquidty(this.lastFirstTokenReserves[csvFileName], this.lastSecondTokenReserves[csvFileName], firstTokenId, secondTokenId, this.lastDate[csvFileName]);
-                    await this.csvRecordsService.pushRecord(csvFileName, [`${this.lastDate[csvFileName].format('YYYY-MM-DD HH:mm:ss.SSS')},${liquidity.decimalPlaces(4)}`], this.headers);
+                    await this.csvRecordsService.pushRecord(
+                        csvFileName,
+                        [
+                            joinCsvAttributes(
+                                this.lastDate[csvFileName].format('YYYY-MM-DD HH:mm:ss.SSS'),
+                                liquidity.decimalPlaces(4),
+                            ),
+                        ],
+                        this.headers);
                 }
             }
 
