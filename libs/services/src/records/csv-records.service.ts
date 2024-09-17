@@ -3,6 +3,7 @@ import { CacheService } from '@multiversx/sdk-nestjs-cache';
 import { CacheInfo } from '@libs/common';
 import { RedlockService } from '@multiversx/sdk-nestjs-cache';
 import { TableSchema } from 'apps/dune-simulator/src/endpoints/dune-simulator/entities';
+import { toSnakeCase } from 'libs/services/utils';
 
 @Injectable()
 export class CsvRecordsService {
@@ -34,7 +35,7 @@ export class CsvRecordsService {
     }
 
     async deleteRecord(csvFileName: string) {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         await this.redLockService.using('update-record', csvFileName, async () => {
             await this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
             await this.cachingService.delete(`${CacheInfo.CSVHeaders(csvFileName).key}`);
@@ -44,7 +45,7 @@ export class CsvRecordsService {
     }
 
     async deleteFirstRecords(csvFileName: string, length: number) {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         await this.redLockService.using('update-record', csvFileName, async () => {
             this.csvRecords[csvFileName] = this.csvRecords[csvFileName].slice(length);
             await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName], CacheInfo.CSVHeaders(csvFileName).ttl);
@@ -52,13 +53,16 @@ export class CsvRecordsService {
     }
 
     async pushRecord(csvFileName: string, data: string[], headers: TableSchema[]) {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         await this.redLockService.using('update-record', csvFileName, async () => {
             if (!this.csvRecords[csvFileName]) {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
                 await this.cachingService.set(CacheInfo.CSVHeaders(csvFileName).key, headers, CacheInfo.CSVHeaders(csvFileName).ttl);
                 this.csvRecords[csvFileName] = data;
-                this.csvHeaders[csvFileName] = headers;
+                this.csvHeaders[csvFileName] = headers.map(header => ({
+                    ...header,
+                    name: toSnakeCase(header.name),
+                }));
             } else {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, this.csvRecords[csvFileName].concat(data), CacheInfo.CSVRecord(csvFileName).ttl);
                 this.csvRecords[csvFileName].push(...data);
@@ -67,7 +71,7 @@ export class CsvRecordsService {
     }
 
     async unshiftRecord(csvFileName: string, data: string[]) {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         await this.redLockService.using('update-record', csvFileName, async () => {
             if (!this.csvRecords[csvFileName]) {
                 await this.cachingService.set(CacheInfo.CSVRecord(csvFileName).key, data, CacheInfo.CSVRecord(csvFileName).ttl);
@@ -85,17 +89,17 @@ export class CsvRecordsService {
     }
 
     getRecord(csvFileName: string): readonly string[] {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         return this.csvRecords[csvFileName] ?? [];
     }
 
     getHeaders(csvFileName: string): TableSchema[] {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         return this.csvHeaders[csvFileName] ?? [];
     }
 
     async getAndDeleteRecord(csvFileName: string): Promise<string[]> {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         const response = await this.redLockService.using('update-record', csvFileName, async () => {
             const record = this.csvRecords[csvFileName] ?? [];
             await this.cachingService.delete(CacheInfo.CSVRecord(csvFileName).key);
@@ -114,7 +118,7 @@ export class CsvRecordsService {
     }
 
     async formatRecord(csvFileName: string): Promise<[string, number]> {
-        csvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+        csvFileName = toSnakeCase(csvFileName);
         let resultString: string = `${this.csvHeaders[csvFileName].map((header) => header.name).join(',')}\n`;
 
         let length: number = 0;

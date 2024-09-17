@@ -5,6 +5,7 @@ import { CsvRecordsService } from "../records";
 import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
+import { toSnakeCase } from "libs/services/utils";
 
 @Injectable()
 export class DuneSenderService {
@@ -34,7 +35,7 @@ export class DuneSenderService {
 
             this.logger.log("starting sending data from file " + csvFileName);
 
-            const formattedCsvFileName = csvFileName.toLowerCase().replace(/-/g, "_");
+            const formattedCsvFileName = toSnakeCase(csvFileName);
 
             const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
 
