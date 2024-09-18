@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { EventLog } from "apps/api/src/endpoints/events/entities";
 import { CsvRecordsService } from "../records";
@@ -40,10 +40,10 @@ export class HatomLiquidationService {
                 const currentEvent: LiquidationEvent = decodeTopics(properties, eventLog.topics.slice(1), types) as LiquidationEvent;
                 const eventDate = moment.unix(eventLog.timestamp);
 
-                const tokenId: string = getTokenIdByMoneyMarket(currentEvent.collateral_mma);
+                const tokenId: string | undefined = getTokenIdByMoneyMarket(currentEvent.collateral_mma);
 
-                if (tokenId === "Not Found") {
-                    console.log("Token ID not found for money market:", currentEvent.collateral_mma);
+                if (tokenId === undefined) {
+                    Logger.warn(`Token ID not found for collateral MMA: ${currentEvent.collateral_mma}`);
                     continue;
                 }
 

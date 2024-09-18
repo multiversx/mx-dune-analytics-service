@@ -29,7 +29,7 @@ export function decodeSingleTopic(topic: string, out: string = "String"): any {
     }
 }
 
-export function getTokenIdByMoneyMarket(moneyMarket: string) {
+export function getTokenIdByMoneyMarket(moneyMarket: string): string | undefined {
     switch (moneyMarket) {
         case 'erd1qqqqqqqqqqqqqpgqta0tv8d5pjzmwzshrtw62n4nww9kxtl278ssspxpxu':
             return 'HUTK-4fa4b2';
@@ -54,6 +54,6 @@ export function getTokenIdByMoneyMarket(moneyMarket: string) {
         case 'erd1qqqqqqqqqqqqqpgq7sspywe6e2ehy7dn5dz00ved3aa450mv78ssllmln6':
             return 'HSWTAO-6df80c';
         default:
-            return "Not Found";
+            return undefined;
     }
 }
