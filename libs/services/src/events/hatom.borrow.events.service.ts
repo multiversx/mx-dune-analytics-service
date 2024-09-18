@@ -5,8 +5,7 @@ import { CsvRecordsService } from "../records";
 import moment from "moment";
 import { DataService } from "../data";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
-import { decodeTopics, HatomEvent, joinCsvAttributes } from "libs/services/utils";
-import { borrowEvent } from "../../utils/hex-constants";
+import { borrowEvent, decodeTopics, HatomEvent, joinCsvAttributes } from "libs/services/utils";
 
 interface BorrowEvent extends HatomEvent {
     eventName: string;

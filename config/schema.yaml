@@ -17,6 +17,7 @@ libs:
       api: string
       dataApiCex: string
       dataApiXexchange: string
+      dataApiHatom: string
       duneApi: string
     database:
       host: string

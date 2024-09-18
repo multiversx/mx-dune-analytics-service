@@ -25,6 +25,10 @@ export class AppConfigService {
     return configuration().libs.common.urls.dataApiXexchange ?? "";
   }
 
+  getDataApiHatomUrl(): string {
+    return configuration().libs.common.urls.dataApiHatom ?? "";
+  }
+
   getDuneApiUrl(): string {
     return configuration().libs.common.urls.duneApi ?? "";
   }
