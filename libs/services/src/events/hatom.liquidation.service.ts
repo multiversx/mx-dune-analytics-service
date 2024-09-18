@@ -34,7 +34,7 @@ export class HatomLiquidationService {
 
     public async hatomLiquidationWebhook(eventsLog: EventLog[]): Promise<void> {
         for (const eventLog of eventsLog) {
-            if (eventLog.identifier === "liquidateBorrow" && eventLog.topics[0] === liquidationBorrowEvent) {
+            if (eventLog.identifier === "liquidateBorrow" && eventLog.topics.length > 0 && eventLog.topics[0] === liquidationBorrowEvent) {
                 const properties: string[] = ["liquidator", "borrower", "amount", "collateral_mma", "tokens"];
                 const types: string[] = ["Address", "Address", "BigNumber", "Address", "BigNumber"];
                 const currentEvent: LiquidationEvent = decodeTopics(properties, eventLog.topics.slice(1), types) as LiquidationEvent;
