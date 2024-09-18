@@ -37,18 +37,16 @@ export class HatomEnterMarketEventsService {
 
         for (const eventLog of eventsLog) {
             const enterMarketEventInHex = '656e7465725f6d61726b65745f6576656e74'; // 'enter_market_event'
+            const enterMarketTopicsLength = 4;
 
-            if (eventLog.identifier === "enterMarkets" && eventLog.topics[0] === enterMarketEventInHex) {
+            if (eventLog.identifier === "enterMarkets" && eventLog.topics.length === enterMarketTopicsLength && eventLog.topics[0] === enterMarketEventInHex) {
                 const currentEvent = this.decodeTopics(eventLog);
-                if (!currentEvent) {
-                    continue;
-                }
+
                 const eventDate = moment.unix(eventLog.timestamp);
                 const tokenID = this.getTokenIdByMoneyMarket(currentEvent.moneyMarket);
                 if (tokenID === this.moneyMarketNotFound) {
                     continue;
                 }
-
 
                 const [valueInEgld, valueInUsd] = await this.convertTokenValue(currentEvent, tokenID, eventDate);
                 const tokenPrecision = await this.dataService.getTokenPrecision(tokenID);
@@ -72,10 +70,7 @@ export class HatomEnterMarketEventsService {
         }
     }
 
-    decodeTopics(eventLog: EventLog): BorrowEvent | undefined {
-        if (eventLog.topics.length !== 4) {
-            return undefined;
-        }
+    decodeTopics(eventLog: EventLog): BorrowEvent {
         const currentEvent: BorrowEvent = {
             eventName: Buffer.from(eventLog.topics[0], 'hex').toString(),
             moneyMarket: Address.newFromHex(Buffer.from(eventLog.topics[1], 'hex').toString('hex')).toBech32(),

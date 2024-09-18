@@ -38,12 +38,11 @@ export class HatomBorrowEventsService {
 
         for (const eventLog of eventsLog) {
             const borrowEventInHex = '626f72726f775f6576656e74'; // 'borrow_event'
+            const borrowEventTopicsLength = 6;
 
-            if (eventLog.identifier === "borrow" && eventLog.topics[0] === borrowEventInHex) {
+            if (eventLog.identifier === "borrow" && eventLog.topics.length === borrowEventTopicsLength && eventLog.topics[0] === borrowEventInHex) {
                 const currentEvent = this.decodeTopics(eventLog);
-                if (!currentEvent) {
-                    continue;
-                }
+
                 const eventDate = moment.unix(eventLog.timestamp);
 
                 const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
@@ -69,10 +68,7 @@ export class HatomBorrowEventsService {
         }
     }
 
-    decodeTopics(eventLog: EventLog): BorrowEvent | undefined {
-        if (eventLog.topics.length !== 6) {
-            return undefined;
-        }
+    decodeTopics(eventLog: EventLog): BorrowEvent {
         const currentEvent: BorrowEvent = {
             eventName: Buffer.from(eventLog.topics[0], 'hex').toString(),
             borrowerAddress: Address.newFromHex(Buffer.from(eventLog.topics[1], 'hex').toString('hex')).toBech32(),
