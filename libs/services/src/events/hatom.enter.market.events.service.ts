@@ -26,6 +26,8 @@ export class HatomEnterMarketEventsService {
         { name: 'value_in_egld', type: 'double' },
         { name: 'value_in_usd', type: 'double' },
     ];
+    private readonly moneyMarketNotFound = "Money Market Not Found!";
+
     constructor(
         private readonly csvRecordsService: CsvRecordsService,
         private readonly dataService: DataService,
@@ -38,9 +40,12 @@ export class HatomEnterMarketEventsService {
 
             if (eventLog.identifier === "enterMarkets" && eventLog.topics[0] === enterMarketEventInHex) {
                 const currentEvent = this.decodeTopics(eventLog);
+                if (!currentEvent) {
+                    continue;
+                }
                 const eventDate = moment.unix(eventLog.timestamp);
                 const tokenID = this.getTokenIdByMoneyMarket(currentEvent.moneyMarket);
-                if (tokenID === 'Not Found') {
+                if (tokenID === this.moneyMarketNotFound) {
                     continue;
                 }
 
@@ -67,7 +72,10 @@ export class HatomEnterMarketEventsService {
         }
     }
 
-    decodeTopics(eventLog: EventLog): BorrowEvent {
+    decodeTopics(eventLog: EventLog): BorrowEvent | undefined {
+        if (eventLog.topics.length !== 4) {
+            return undefined;
+        }
         const currentEvent: BorrowEvent = {
             eventName: Buffer.from(eventLog.topics[0], 'hex').toString(),
             moneyMarket: Address.newFromHex(Buffer.from(eventLog.topics[1], 'hex').toString('hex')).toBech32(),
@@ -113,7 +121,7 @@ export class HatomEnterMarketEventsService {
             case 'erd1qqqqqqqqqqqqqpgq7sspywe6e2ehy7dn5dz00ved3aa450mv78ssllmln6':
                 return 'HSWTAO-6df80c';
             default:
-                return "Not Found";
+                return this.moneyMarketNotFound;
         }
     }
 }
