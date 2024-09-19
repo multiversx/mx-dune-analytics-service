@@ -33,7 +33,7 @@ export class HatomLiquidationService {
     ) {}
 
     public async hatomLiquidationWebhook(eventsLog: EventLog[]): Promise<void> {
-        const liquidationBorrowTopicsLength = 5;
+        const liquidationBorrowTopicsLength = 6;
 
         for (const eventLog of eventsLog) {
             if (eventLog.identifier === "liquidateBorrow" && eventLog.topics.length === liquidationBorrowTopicsLength && eventLog.topics[0] === liquidationBorrowEvent) {
