@@ -14,13 +14,14 @@ libs:
       api: ${API_URL}
       dataApiCex: ${DATA_API_CEX_URL}
       dataApiXexchange: ${DATA_API_XEXCHANGE_URL}
+      dataApiHatom: ${DATA_API_HATOM_URL}
       duneApi: ${DUNE_API_URL}
     database:
       host: 'localhost'
       port: 27017
       # username: 'root'
       # password: 'root'
-      name: 'example'
+      name: 'duneDB'
       tlsAllowInvalidCertificates: true
     redis:
       host: '127.0.0.1'

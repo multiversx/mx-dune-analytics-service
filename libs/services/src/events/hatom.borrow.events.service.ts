@@ -1,14 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { EventLog } from "apps/api/src/endpoints/events/entities";
-import { Address } from "@multiversx/sdk-core";
 import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
 import moment from "moment";
 import { DataService } from "../data";
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
-import { joinCsvAttributes } from "libs/services/utils";
+import { borrowEvent, decodeTopics, HatomEvent, joinCsvAttributes } from "libs/services/utils";
 
-interface BorrowEvent {
+interface BorrowEvent extends HatomEvent {
     eventName: string;
     borrowerAddress: string;
     amount: BigNumber;
@@ -35,12 +34,11 @@ export class HatomBorrowEventsService {
     ) { }
 
     public async hatomBorrowWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
-
         for (const eventLog of eventsLog) {
-            const borrowEventInHex = '626f72726f775f6576656e74'; // 'borrow_event'
-
-            if (eventLog.identifier === "borrow" && eventLog.topics[0] === borrowEventInHex) {
-                const currentEvent = this.decodeTopics(eventLog);
+            if (eventLog.identifier === "borrow" && eventLog.topics[0] === borrowEvent) {
+                const properties: string[] = ["eventName", "borrowerAddress", "amount", "newAccountBorrow", "newTotalBorrows", "newBorrowerIndex"];
+                const types: string[] = ["String", "Address", "BigNumber", "BigNumber", "BigNumber", "BigNumber"];
+                const currentEvent: BorrowEvent = decodeTopics(properties, eventLog.topics, types) as BorrowEvent;
                 const eventDate = moment.unix(eventLog.timestamp);
 
                 const [borrowedAmountInEGLD, borrowedAmountInUSD] = await this.convertBorrowedAmount(currentEvent, borrowedToken, eventDate);
@@ -66,19 +64,6 @@ export class HatomBorrowEventsService {
         }
     }
 
-    decodeTopics(eventLog: EventLog): BorrowEvent {
-        const currentEvent: BorrowEvent = {
-            eventName: Buffer.from(eventLog.topics[0], 'hex').toString(),
-            borrowerAddress: Address.newFromHex(Buffer.from(eventLog.topics[1], 'hex').toString('hex')).toBech32(),
-            amount: BigNumber(Buffer.from(eventLog.topics[2], 'hex').toString('hex'), 16),
-            newAccountBorrow: BigNumber(Buffer.from(eventLog.topics[3], 'hex').toString('hex'), 16),
-            newTotalBorrows: BigNumber(Buffer.from(eventLog.topics[4], 'hex').toString('hex'), 16),
-            newBorrowerIndex: BigNumber(Buffer.from(eventLog.topics[5], 'hex').toString('hex'), 16),
-        };
-
-        return currentEvent;
-    }
-
     async convertBorrowedAmount(currentEvent: BorrowEvent, borrowedToken: string, date: moment.Moment): Promise<[BigNumber, BigNumber]> {
         let borrowedAmountInEGLD, borrowedAmountInUSD;
 
@@ -93,5 +78,3 @@ export class HatomBorrowEventsService {
         return [borrowedAmountInEGLD, borrowedAmountInUSD];
     }
 }
-
-
