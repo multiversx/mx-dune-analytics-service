@@ -8,6 +8,10 @@ apps:
     port: integer
     privatePort: integer
     useCachingInterceptor: boolean
+  transactionsProcessor:
+    port: integer
+    privatePort: integer
+    useCachingInterceptor: boolean
 libs:
   common:
     network:

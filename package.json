@@ -13,6 +13,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:api": "cross-env NODE_APP=api npm run start",
     "start:dune-simulator": "cross-env NODE_APP=dune-simulator npm run start",
+    "start:transactions-processor": "cross-env NODE_APP=transactions-processor npm run start",
     "start": "npm run copy-config && npm run nest-start",
     "copy-config-infra": "mkdir -p dist/config && cp .multiversx/config/config.yaml dist/config/config.yaml && cp config/schema.yaml dist/config/schema.yaml",
     "copy-config": "mkdir -p ./apps/$NODE_APP/config && cp ./config/config.yaml ./apps/$NODE_APP/config/config.yaml && cp ./config/schema.yaml ./apps/$NODE_APP/config/schema.yaml",

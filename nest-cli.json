@@ -58,6 +58,25 @@
         ]
       }
     },
+    "transactions-processor": {
+      "type": "application",
+      "root": "apps/transactions-processor",
+      "entryFile": "main",
+      "sourceRoot": "apps/transactions-processor/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/transactions-processor/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "../config/config.yaml",
+            "outDir": "./dist/config"
+          },
+          {
+            "include": "../config/schema.yaml",
+            "outDir": "./dist/config"
+          }
+        ]
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",

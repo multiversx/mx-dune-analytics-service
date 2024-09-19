@@ -12,6 +12,10 @@ export interface Config {
       privatePort: number;
       useCachingInterceptor: boolean;
     };
+    transactionsProcessor: {
+      port: number;
+      maxLookBehind: number;
+    };
   };
   libs: {
     common: {

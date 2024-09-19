@@ -7,6 +7,10 @@ apps:
     port: 3001
     privatePort: 4001
     useCachingInterceptor: true
+  transactionsProcessor:
+    port: 3002
+    privatePort: 4002
+    useCachingInterceptor: true
 libs:
   common:
     network: ${NETWORK}
