@@ -25,7 +25,7 @@ export class HatomEnterMarketEventsService {
         { name: 'borrower_address', type: 'varchar' },
         { name: 'value_in_egld', type: 'double' },
         { name: 'value_in_usd', type: 'double' },
-        { name: 'value_value_in_usd', type: 'double' },
+        { name: 'total_value_in_usd', type: 'double' },
         { name: 'total_value_in_egld', type: 'double' },
     ];
     private readonly moneyMarketNotFound = "Money Market Not Found!";

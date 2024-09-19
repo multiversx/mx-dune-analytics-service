@@ -46,7 +46,7 @@ export class DuneSenderService {
                 const filePath = path.join(process.cwd(), formattedCsvFileName);
                 try {
                     await fs.access(filePath);
-                    await fs.appendFile(filePath, '\n' + resultString.split('\n').slice(1).join('\n'))
+                    await fs.appendFile(filePath, '\n' + resultString.split('\n').slice(1).join('\n'));
 
                 } catch {
                     await fs.appendFile(filePath, resultString);
