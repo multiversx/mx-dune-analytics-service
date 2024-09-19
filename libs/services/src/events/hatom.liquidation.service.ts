@@ -55,8 +55,8 @@ export class HatomLiquidationService {
 
                 const tokenPrecision = await this.dataService.getTokenPrecision(tokenId);
                 const [liquidatedAmountInEGLD, liquidatedAmountInUSD] = await this.convertTokenValue(currentEvent.tokens, tokenId, eventDate);
-                this.totalLiquidatedInEgld.plus(liquidatedAmountInEGLD);
-                this.totalLiquidatedInUsd.plus(liquidatedAmountInUSD);
+                this.totalLiquidatedInEgld = this.totalLiquidatedInEgld.plus(liquidatedAmountInEGLD);
+                this.totalLiquidatedInUsd = this.totalLiquidatedInUsd.plus(liquidatedAmountInUSD);
 
                 await this.csvRecordsService.pushRecord(
                     "hatom_liquidation_events", 
