@@ -6,6 +6,8 @@ import { AppConfigService } from "apps/api/src/config/app-config.service";
 import axios from 'axios';
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { toSnakeCase } from "libs/services/utils";
+import path from "path";
+import fs from "fs/promises";
 
 @Injectable()
 export class DuneSenderService {
@@ -37,10 +39,29 @@ export class DuneSenderService {
 
             const formattedCsvFileName = toSnakeCase(csvFileName);
 
-            const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
+            try {
+
+                const filePath = path.join(process.cwd(), formattedCsvFileName);
+                try {
+                    await fs.access(filePath);
+                    await fs.appendFile(filePath, '\n' + resultString.split('\n').slice(1).join('\n'))
+
+                } catch {
+                    await fs.appendFile(filePath, resultString);
+                }
+
+
+                this.logger.log(`CSV file updated successfully: ${formattedCsvFileName}`);
+
+                // If needed, delete the first records after successfully appending to the file
+                await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
+            } catch (error) {
+                this.logger.error(`Failed to update CSV file: ${formattedCsvFileName}`, error);
+            }
+            // const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
 
             if (isRecordSent) {
-                await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
+                // await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
             }
         }
     }
