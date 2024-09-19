@@ -33,7 +33,7 @@ export class DuneSenderService {
             }
             const [resultString, linesLength] = await this.csvRecordsService.formatRecord(csvFileName);
 
-            const csvData: Buffer = Buffer.from(resultString, 'utf-8');
+            // const csvData: Buffer = Buffer.from(resultString, 'utf-8');
 
             this.logger.log("starting sending data from file " + csvFileName);
 
@@ -60,9 +60,9 @@ export class DuneSenderService {
             }
             // const isRecordSent = await this.insertCsvDataToTable(formattedCsvFileName, csvData);
 
-            if (isRecordSent) {
+            // if (isRecordSent) {
                 // await this.csvRecordsService.deleteFirstRecords(csvFileName, linesLength);
-            }
+            // }
         }
     }
 
