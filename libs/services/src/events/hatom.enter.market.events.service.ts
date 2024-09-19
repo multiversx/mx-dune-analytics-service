@@ -25,8 +25,8 @@ export class HatomEnterMarketEventsService {
         { name: 'borrower_address', type: 'varchar' },
         { name: 'value_in_egld', type: 'double' },
         { name: 'value_in_usd', type: 'double' },
-        { name: 'value_value_in_usd', type: 'double' },
         { name: 'total_value_in_egld', type: 'double' },
+        { name: 'total_value_in_usd', type: 'double' },
     ];
     private readonly moneyMarketNotFound = "Money Market Not Found!";
     private totalValueInUsd: BigNumber = new BigNumber(0);
@@ -66,8 +66,8 @@ export class HatomEnterMarketEventsService {
                             currentEvent.borrowerAddress,
                             valueInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
                             valueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
-                            this.totalValueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
                             this.totalValueInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            this.totalValueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
                         ),
                     ],
                     this.headers,
