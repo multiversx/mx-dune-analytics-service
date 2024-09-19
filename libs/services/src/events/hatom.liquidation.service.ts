@@ -36,6 +36,7 @@ export class HatomLiquidationService {
         const liquidationBorrowTopicsLength = 6;
 
         for (const eventLog of eventsLog) {
+            console.log(eventLog);
             if (eventLog.identifier === "liquidateBorrow" && eventLog.topics.length === liquidationBorrowTopicsLength && eventLog.topics[0] === liquidationBorrowEvent) {
                 const properties: string[] = ["liquidator", "borrower", "amount", "collateral_mma", "tokens"];
                 const types: string[] = ["Address", "Address", "BigNumber", "Address", "BigNumber"];
