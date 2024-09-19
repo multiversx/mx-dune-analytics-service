@@ -72,13 +72,13 @@ export class DynamicCollectionRepository {
         const existingCollections = await this.connection.db.listCollections({ name: collectionName }).toArray();
         if (existingCollections.length === 0) {
             const schema = new Schema({
-                shardId: { type: Number, required: true },
                 nonce: { type: Number, required: true },
             });
-            this.connection.model(collectionName, schema);
+            await this.connection.model(collectionName, schema);
         }
+
         const dynamicModel = this.connection.db.collection(collectionName);
-        await dynamicModel.updateOne({ $set: { nonce } }, { upsert: true });
+        await dynamicModel.insertOne({ "nonce": nonce });
     }
 
     public async getLastProcessedTimestamp() {
