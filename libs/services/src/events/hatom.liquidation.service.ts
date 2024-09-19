@@ -25,6 +25,8 @@ export class HatomLiquidationService {
         { name: 'amount', type: 'double' },
         { name: 'amount_in_egld', type: 'double' },
         { name: 'amount_in_usd', type: 'double' },
+        { name: 'total_liquidated_in_egld', type: 'double' },
+        { name: 'total_liquidated_in_usd', type: 'double' },
     ];
 
     constructor(
@@ -34,6 +36,8 @@ export class HatomLiquidationService {
 
     public async hatomLiquidationWebhook(eventsLog: EventLog[]): Promise<void> {
         const liquidationBorrowTopicsLength = 6;
+        const totalLiquidatedInEgld = new BigNumber(0);
+        const totalLiquidatedInUsd = new BigNumber(0);
 
         for (const eventLog of eventsLog) {
             if (eventLog.identifier === "liquidateBorrow" && eventLog.topics.length === liquidationBorrowTopicsLength && eventLog.topics[0] === liquidationBorrowEvent) {
@@ -51,6 +55,8 @@ export class HatomLiquidationService {
 
                 const tokenPrecision = await this.dataService.getTokenPrecision(tokenId);
                 const [liquidatedAmountInEGLD, liquidatedAmountInUSD] = await this.convertTokenValue(currentEvent.tokens, tokenId, eventDate);
+                totalLiquidatedInEgld.plus(liquidatedAmountInEGLD);
+                totalLiquidatedInUsd.plus(liquidatedAmountInUSD);
 
                 await this.csvRecordsService.pushRecord(
                     "hatom_liquidation_events", 
@@ -63,6 +69,8 @@ export class HatomLiquidationService {
                             currentEvent.tokens.shiftedBy(-tokenPrecision).decimalPlaces(4),
                             liquidatedAmountInEGLD.shiftedBy(-tokenPrecision).decimalPlaces(4),
                             liquidatedAmountInUSD.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            totalLiquidatedInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
+                            totalLiquidatedInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
                         ),
                     ], 
                     this.headers
