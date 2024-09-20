@@ -24,20 +24,12 @@ module.exports = {
     },
     'boundaries/elements': [
       {
-        type: 'apps/api',
-        pattern: 'apps/api',
+        type: 'apps/events-processor',
+        pattern: 'apps/events-processor',
       },
       {
-        type: 'apps/cache-warmer',
-        pattern: 'apps/cache-warmer',
-      },
-      {
-        type: 'apps/queue-worker',
-        pattern: 'apps/queue-worker',
-      },
-      {
-        type: 'apps/transactions-processor',
-        pattern: 'apps/transactions-processor',
+        type: 'apps/dune-simulator',
+        pattern: 'apps/dune-simulator',
       },
       {
         type: 'libs/common',
@@ -78,33 +70,25 @@ module.exports = {
       default: 'disallow',
       rules: [
         {
-          from: 'apps/api',
+          from: 'apps/events-processor',
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
-          from: 'apps/cache-warmer',
-          allow: ['libs/common', 'libs/entities', 'libs/services']
-        },
-        {
-          from: 'apps/queue-worker',
-          allow: ['libs/common', 'libs/entities', 'libs/services']
-        },
-        {
-          from: 'apps/transactions-processor',
+          from: 'apps/dune-simulator',
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
           from: 'libs/database',
-          allow: ['libs/common', 'libs/entities']
+          allow: ['libs/common', 'libs/entities', 'apps/dune-simulator']
         },
         {
           from: 'libs/services',
-          allow: ['libs/common', 'libs/entities', 'libs/database']
+          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/events-processor', 'apps/dune-simulator']
         },
         {
           from: 'libs/common',
           allow: ['libs/entities']
-        }
+        },
       ]
     }],
     'boundaries/no-unknown': [2],
