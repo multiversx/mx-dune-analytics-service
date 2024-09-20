@@ -1,6 +1,12 @@
 REST API facade template for microservices that interacts with the MultiversX blockchain.
 
+
 ## Quick start
+
+You might need additional packages installed on your PC in order to install all dependencies (canvas, for example). 
+Before running npm install on MacOS, make sure you install all the packages, as following:
+shell
+brew install pkg-config cairo pango libpng jpeg giflib librsvg
 
 1. Run `npm install` in the project directory
 2. Optionally make edits to `config/config.yaml` and/or `.env` files
