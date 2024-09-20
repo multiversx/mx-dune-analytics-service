@@ -31,7 +31,7 @@ brew install pkg-config cairo pango libpng jpeg giflib librsvg
 
 At the time of the writing, there is no official Dune account to be used, so one that will extend or integrate this project will have to create his own account and datasets.
 
-In order to contribute, one can follow the implementation of the already integrates features. 
+In order to contribute, one can follow the implementation of the already integrated features. 
 
 ### Architecture
 
