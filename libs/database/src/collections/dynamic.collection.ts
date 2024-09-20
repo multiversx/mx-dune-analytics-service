@@ -56,7 +56,6 @@ export class DynamicCollectionRepository {
         return collectionDocuments;
     }
 
-
     private mapToMongooseType(fieldType: string) {
         switch (fieldType.toLowerCase()) {
             case 'varchar':
@@ -66,6 +65,34 @@ export class DynamicCollectionRepository {
             default:
                 throw new HttpException(`Unsupported field type: ${fieldType}`, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    public async setLastProcessedTimestamp(key: string, nonce: number) {
+        const collectionName = `${key}_last_processed_nonce`;
+        const existingCollections = await this.connection.db.listCollections({ name: collectionName }).toArray();
+        if (existingCollections.length === 0) {
+            const schema = new Schema({
+                nonce: { type: Number, required: true },
+            });
+            this.connection.model(collectionName, schema);
+        }
+
+        const dynamicModel = this.connection.db.collection(collectionName);
+        await dynamicModel.updateOne({}, { $set: { "nonce": nonce } }, { upsert: true });
+    }
+
+    public async getLastProcessedTimestamp(key: string) {
+        const collectionName = `${key}_last_processed_nonce`;
+        const existingCollections = await this.connection.db.listCollections({ name: collectionName }).toArray();
+        if (existingCollections.length === 0) {
+            return 0;
+        }
+        const dynamicModel = this.connection.db.collection(collectionName);
+        const lastProcessedNonce = await dynamicModel.findOne();
+        if (!lastProcessedNonce) {
+            return 0;
+        }
+        return lastProcessedNonce.nonce;
     }
 }
 

@@ -1,6 +1,6 @@
 title: config
 apps:
-  api:
+  eventsProcessor:
     port: integer
     privatePort: integer
     useCachingInterceptor: boolean
@@ -17,6 +17,7 @@ libs:
       api: string
       dataApiCex: string
       dataApiXexchange: string
+      dataApiHatom: string
       duneApi: string
     database:
       host: string

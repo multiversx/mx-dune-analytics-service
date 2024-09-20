@@ -4,6 +4,7 @@ import { ApiMetricsModule, DynamicModuleUtils } from '@libs/common';
 import { LoggingModule } from '@multiversx/sdk-nestjs-common';
 import { CommonConfigModule } from '@libs/common/config/common.config.module';
 import { AppConfigModule } from './config/app-config.module';
+import { ServicesModule } from '@libs/services';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AppConfigModule } from './config/app-config.module';
     DynamicModuleUtils.getCachingModule(),
     CommonConfigModule,
     AppConfigModule,
+    ServicesModule,
   ],
   providers: [
     DynamicModuleUtils.getNestJsApiConfigService(),

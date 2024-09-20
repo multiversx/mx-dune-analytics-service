@@ -24,8 +24,8 @@ module.exports = {
     },
     'boundaries/elements': [
       {
-        type: 'apps/api',
-        pattern: 'apps/api',
+        type: 'apps/events-processor',
+        pattern: 'apps/events-processor',
       },
       {
         type: 'apps/dune-simulator',
@@ -70,7 +70,7 @@ module.exports = {
       default: 'disallow',
       rules: [
         {
-          from: 'apps/api',
+          from: 'apps/events-processor',
           allow: ['libs/common', 'libs/entities', 'libs/services']
         },
         {
@@ -83,12 +83,12 @@ module.exports = {
         },
         {
           from: 'libs/services',
-          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/api', 'apps/dune-simulator']
+          allow: ['libs/common', 'libs/entities', 'libs/database', 'apps/events-processor', 'apps/dune-simulator']
         },
         {
           from: 'libs/common',
           allow: ['libs/entities']
-        }
+        },
       ]
     }],
     'boundaries/no-unknown': [2],

@@ -2,9 +2,9 @@
 
 export interface Config {
   apps: {
-    api: {
+    eventsProcessor: {
       port: number;
-      privatePort: number;
+      privatePort: port;
       useCachingInterceptor: boolean;
     };
     duneSimulator: {
@@ -20,6 +20,7 @@ export interface Config {
         api: string;
         dataApiCex: string;
         dataApiXexchange: string;
+        dataApiHatom: string;
         duneApi: string;
       };
       database: {

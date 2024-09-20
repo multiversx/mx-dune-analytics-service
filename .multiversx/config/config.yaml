@@ -1,5 +1,5 @@
 apps:
-  api:
+  eventsProcessor:
     port: 3000
     privatePort: 4000
     useCachingInterceptor: true
@@ -14,6 +14,7 @@ libs:
       api: ${API_URL}
       dataApiCex: ${DATA_API_CEX_URL}
       dataApiXexchange: ${DATA_API_XEXCHANGE_URL}
+      dataApiHatom: ${DATA_API_HATOM_URL}
       duneApi: ${DUNE_API_URL}
     database:
       host: 'localhost'
