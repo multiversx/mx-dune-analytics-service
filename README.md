@@ -1,15 +1,86 @@
 REST API facade template for microservices that interacts with the MultiversX blockchain.
 
+## Introduction
 
-## Quick start
+This repository features a starting point for extracting, transforming and loading MultiversX specific data into Dune Analytics. 
 
-You might need additional packages installed on your PC in order to install all dependencies (canvas, for example). 
-Before running npm install on MacOS, make sure you install all the packages, as following:
-shell
+It includes examples on how to process different Hatom events, such as lending, borrowing and liquidation. 
+
+It also includes a `dune simulator` that exposes the same Rest API interface as Dune Analytics, and is also able to generate charts. This will be very useful for testing.
+
+## Installation
+
+You might need additional packages installed on your PC in order to install all dependencies (canvas, for example).
+Before running `npm install` on `MacOS` (for example), make sure you install all the packages, as following:
+```
 brew install pkg-config cairo pango libpng jpeg giflib librsvg
+```
 
 1. Run `npm install` in the project directory
-2. Optionally make edits to `config/config.yaml` and/or `.env` files
+2. Update `config/config.yaml` and/or `.env` files
+
+## Extending or contributing
+
+At the time of the writing, there is no official Dune account to be used, so one that will extend or integrate this project will have to create his own account and datasets.
+
+In order to contribute, one can follow the implementation of the already integrates features. 
+
+### Architecture
+
+The project relies on a so-called component `event processor` (similar to `transaction processor` for those familiar with MultiversX microservices) that can return 
+via a callback all the events that match the provided criteria. 
+
+Calls to this component are triggered via `cron jobs` that will initiate data fetching at given intervals. 
+
+All the received events are then processed by services specific to each use-case. They will make conversions, will update different fields (such as prices), and so on. 
+After the processing, they will send all the processed events to an accumulator.
+
+From time to time (by using a different `cron job`), the accumulator will push data to Dune Analytics. 
+
+In testing phases (or when using sensitive data), there's also a different app called `dune simulator` that can receive the events and generate charts.
+
+Let's see how we can integrate an use case.
+
+### Use case: Hatom borrowing events
+
+Let's follow, for example, how Hatom borrowing events processing was integrated:
+
+1. First, we need to create a service. Have a look at the `libs/services/src/events/hatom.borrow.events.service.ts` service to see how we process events and how we send them to the accumulator.
+2. Then, we need to import that service into `libs/services/src/event-processor/processor.service.ts`.
+3. After that, we need to create a new cron job for this use-case. In this function, we will initialize an `event processor` instance and we'll configure the desired options:
+```
+@Cron(CronExpression.EVERY_10_SECONDS)
+  async handleHatomBorrowEventsUSDT() {
+    await Locker.lock('hatom-borrow-USDT-f8c08c', async () => {
+      const eventProcessorOptions = new EventProcessorOptions({
+        elasticUrl: 'https://index.multiversx.com',
+        eventIdentifiers: ['borrow'],
+        emitterAddresses: ['erd1qqqqqqqqqqqqqpgqkrgsvct7hfx7ru30mfzk3uy6pxzxn6jj78ss84aldu'],
+        pageSize: 500,
+        getLastProcessedTimestamp: async () => {
+          return await this.dynamicCollectionService.getLastProcessedTimestamp('hatom-borrow-USDT-f8c08c');
+        },
+        setLastProcessedTimestamp: async (nonce) => {
+          await this.dynamicCollectionService.setLastProcessedTimestamp('hatom-borrow-USDT-f8c08c', nonce);
+        },
+        onEventsReceived: async (highestTimestamp, events) => {
+          highestTimestamp;
+          await this.hatomBorrowService.hatomBorrowParser(events as EventLog[], 'USDT-f8c08c');
+        },
+      });
+      const eventProcessor = new EventProcessor();
+      await eventProcessor.start(eventProcessorOptions);
+    });
+  }
+```
+
+As you can see, we want to receive all the events emitted by the address `erd1qqqqqqqqqqqqqpgqkrgsvct7hfx7ru30mfzk3uy6pxzxn6jj78ss84aldu` and have the identifier `borrow`. 
+
+Inside the functions that handle the last processed timestamps, we will store them into MongoDB for persistance. 
+
+Inside the `onEventsReceived` function, we call our service that will further process the raw events.
+
+For this example, since we need to query multiple addresses for getting all the `borrow` events, we can either create multiple cron jobs, either set multiple entries in `emitterAddresses`.
 
 ## Dependencies
 
@@ -52,7 +123,7 @@ This is a MultiversX project built on Nest.js framework.
 
 ### Environment variables
 
-In order to simplify the scripts, the templates will use the following environment variables:
+In order to simplify the scripts, we'll use the following environment variables:
 
 - `NODE_ENV`
 
@@ -94,6 +165,7 @@ $ NODE_ENV=devnet NODE_APP=events-processor NODE_WATCH=true npm run start:events
 
 # development debug mode on devnet
 $ NODE_ENV=devnet NODE_APP=events-processor NODE_DEBUG=true npm run start:events-processor
+```
 
 ## Running the dune-simulator
 
@@ -122,25 +194,3 @@ $ npm run test:cov
 1. start docker containers
 2. start dune-simulator app (if you want to store data locally on your machine)
 3. start events-processor app
-
-### How it works
-- events-processor starts fetching data from index.multiversx.com -> parse the data to 
-the specified format -> store it within a csv-records class manager
-- a cron job from dune-sender.service regularly check if there is any data stored in the csv-records class manager
-and send the data to Dune or Dune-simulator (check .env file and specify where do you want to send the data by 
-choosing between these 2 urls to initialize 'DUNE_API_URL' with: http://localhost:3001/api/v1/table or https://api.dune.com/api/v1/table ,
-if you want to send data to the Dune website, please also provide in .env a valid 'DUNE_NAMESPACE' and a valid 'DUNE_API_KEY' for your Dune account)
-- if the data is sent to the simulator, you can also generate some charts with it 
-(make a get request in browser to the following urls:
-http://localhost:3001/api/v1/table/generate/chart/:table_name/:x_axis/:y_axis/html 
-                            or 
-http://localhost:3001/api/v1/table/generate/chart/:table_name/:x_axis/:y_axis/png 
-
-- table_name -> check collection name from mongoDB
-- x_axis -> document field name for x_axis
-- y_axis -> document field name for y_axis  )
-
-### How to contribute
-If you want to contribute to the project to create your own datasets for any events, add a new CronJob into 
-the processor.service (check libs/services/event-processor/processor.service for some examples) and also create
-a parser service for the events you fetch (check libs/services/src/events for some examples)
