@@ -1,14 +1,10 @@
 title: config
 apps:
-  api:
+  eventsProcessor:
     port: integer
     privatePort: integer
     useCachingInterceptor: boolean
   duneSimulator:
-    port: integer
-    privatePort: integer
-    useCachingInterceptor: boolean
-  transactionsProcessor:
     port: integer
     privatePort: integer
     useCachingInterceptor: boolean

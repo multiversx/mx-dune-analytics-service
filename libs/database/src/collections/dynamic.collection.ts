@@ -67,22 +67,22 @@ export class DynamicCollectionRepository {
         }
     }
 
-    public async setLastProcessedTimestamp(nonce: number) {
-        const collectionName = `last_processed_nonce`;
+    public async setLastProcessedTimestamp(key: string, nonce: number) {
+        const collectionName = `${key}_last_processed_nonce`;
         const existingCollections = await this.connection.db.listCollections({ name: collectionName }).toArray();
         if (existingCollections.length === 0) {
             const schema = new Schema({
                 nonce: { type: Number, required: true },
             });
-            await this.connection.model(collectionName, schema);
+            this.connection.model(collectionName, schema);
         }
 
         const dynamicModel = this.connection.db.collection(collectionName);
-        await dynamicModel.insertOne({ "nonce": nonce });
+        await dynamicModel.updateOne({}, { $set: { "nonce": nonce } }, { upsert: true });
     }
 
-    public async getLastProcessedTimestamp() {
-        const collectionName = `last_processed_nonce`;
+    public async getLastProcessedTimestamp(key: string) {
+        const collectionName = `${key}_last_processed_nonce`;
         const existingCollections = await this.connection.db.listCollections({ name: collectionName }).toArray();
         if (existingCollections.length === 0) {
             return 0;

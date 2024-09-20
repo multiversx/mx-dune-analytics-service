@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { EventLog } from "apps/api/src/endpoints/events/entities";
+import { EventLog } from "apps/events-processor/src/processor/entities";
 import moment from "moment";
 import BigNumber from "bignumber.js";
 import { AddLiquidityEvent, RemoveLiquidityEvent } from "@multiversx/sdk-exchange";

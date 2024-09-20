@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { Lock, OriginLogger } from "@multiversx/sdk-nestjs-common";
 import { CsvRecordsService } from "../records";
-import { AppConfigService } from "apps/api/src/config/app-config.service";
+import { AppConfigService } from "apps/events-processor/src/config/app-config.service";
 import axios from 'axios';
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { toSnakeCase } from "libs/services/utils";

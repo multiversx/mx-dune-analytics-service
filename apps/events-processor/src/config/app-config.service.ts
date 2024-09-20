@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class AppConfigService {
-  readonly config = configuration().apps.api;
+  readonly config = configuration().apps.eventsProcessor;
 
   getDuneNamespace(): string {
     return configuration().libs.common.features.dune.namespace ?? "";

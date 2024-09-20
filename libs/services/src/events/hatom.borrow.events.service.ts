@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { EventLog } from "apps/api/src/endpoints/events/entities";
+import { EventLog } from "apps/events-processor/src/processor/entities";
 import { Address } from "@multiversx/sdk-core";
 import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
@@ -34,7 +34,7 @@ export class HatomBorrowEventsService {
         private readonly dataService: DataService,
     ) { }
 
-    public async hatomBorrowWebhook(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
+    public async hatomBorrowParser(eventsLog: EventLog[], borrowedToken: string): Promise<void> {
 
         for (const eventLog of eventsLog) {
             const borrowEventInHex = '626f72726f775f6576656e74'; // 'borrow_event'

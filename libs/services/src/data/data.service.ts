@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 import BigNumber from "bignumber.js";
 import axios from 'axios';
 import moment from "moment";
-import { AppConfigService } from "apps/api/src/config/app-config.service";
+import { AppConfigService } from "apps/events-processor/src/config/app-config.service";
 import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 
 interface TokenPrice {

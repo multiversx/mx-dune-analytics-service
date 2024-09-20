@@ -4,7 +4,7 @@ import { CacheInfo } from '@libs/common';
 import { RedlockService } from '@multiversx/sdk-nestjs-cache';
 import { TableSchema } from 'apps/dune-simulator/src/endpoints/dune-simulator/entities';
 import { toSnakeCase } from 'libs/services/utils';
-
+import '@multiversx/sdk-nestjs-common/lib/utils/extensions/string.extensions';
 @Injectable()
 export class CsvRecordsService {
     private csvRecords: Record<string, string[]> = {};

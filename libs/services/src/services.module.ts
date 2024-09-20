@@ -5,6 +5,8 @@ import { HatomBorrowEventsService, HatomEnterMarketEventsService, LiquidityEvent
 import { DataService } from './data';
 import { DuneSenderService } from './dune-sender';
 import { CsvRecordsService } from './records';
+import { EventProcessor } from './event-processor/event.processor';
+import { ProcessorService } from './event-processor/processor.service';
 
 @Global()
 @Module({
@@ -20,6 +22,8 @@ import { CsvRecordsService } from './records';
     CsvRecordsService,
     HatomBorrowEventsService,
     HatomEnterMarketEventsService,
+    EventProcessor,
+    ProcessorService,
   ],
   exports: [
     LiquidityEventsService,
@@ -28,6 +32,8 @@ import { CsvRecordsService } from './records';
     CsvRecordsService,
     HatomBorrowEventsService,
     HatomEnterMarketEventsService,
+    EventProcessor,
+    ProcessorService,
   ],
 })
 export class ServicesModule { }

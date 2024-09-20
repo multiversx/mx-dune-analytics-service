@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { EventLog } from "apps/api/src/endpoints/events/entities";
+import { EventLog } from "apps/events-processor/src/processor/entities";
 import { Address } from "@multiversx/sdk-core";
 import BigNumber from "bignumber.js";
 import { CsvRecordsService } from "../records";
@@ -37,12 +37,11 @@ export class HatomEnterMarketEventsService {
         private readonly dataService: DataService,
     ) { }
 
-    public async hatomEnterMarketWebhook(eventsLog: EventLog[]): Promise<void> {
+    public async hatomEnterMarketParser(eventsLog: EventLog[]): Promise<void> {
 
         for (const eventLog of eventsLog) {
             const enterMarketEventInHex = '656e7465725f6d61726b65745f6576656e74'; // 'enter_market_event'
             const enterMarketTopicsLength = 4;
-
             if (eventLog.identifier === "enterMarkets" && eventLog.topics.length === enterMarketTopicsLength && eventLog.topics[0] === enterMarketEventInHex) {
                 const currentEvent = this.decodeTopics(eventLog);
 
