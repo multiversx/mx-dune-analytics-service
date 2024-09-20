@@ -1,4 +1,4 @@
-REST API facade template for microservices that interacts with the MultiversX blockchain.
+MultiversX to Dune analytics boilerplate
 
 ## Introduction
 
