@@ -26,17 +26,13 @@ Endpoints that can be used by anyone (public endpoints).
 Endpoints that are not exposed on the internet
 For example: We do not want to expose our metrics and cache interactions to anyone (/metrics /cache)
 
-### `Cache Warmer`
+### `Events Processor`
 
-This is used to keep the application cache in sync with new updates.
+This is used to fetch specific events from index.multiversx.com, extract necessary dataset and send it to Dune via API.
 
-### `Transaction Processor`
+### `Dune Simulator`
 
-This is used for scanning the transactions from MultiversX Blockchain.
-
-### `Queue Worker`
-
-This is used for concurrently processing heavy jobs.
+This is used to simulate Dune responses and behaviour, in order to verify data before making it public.
 
 ### `Grafana dashboard`
 
@@ -64,7 +60,7 @@ In order to simplify the scripts, the templates will use the following environme
 
 **Description**: Specifies which part of the application to start.
 
-**Possible Values**: `api`, `cache-warmer`, `transactions-processor`, `queue-worker`
+**Possible Values**: `events-processor`, `dune-simulator`
 
 **Usage**: Selects the specific application module to run.
 
@@ -84,83 +80,24 @@ In order to simplify the scripts, the templates will use the following environme
 
 **Usage**: When set to true, the application starts in watch mode, which automatically reloads the app on code changes.
 
-
-### `npm run start`
-
-Runs the app in the production mode.
-Make requests to [http://localhost:3001](http://localhost:3001).
-
-Redis Server is required to be installed.
-
-## Running the api
+## Running the events-processor
 
 ```bash
 # development watch mode on devnet
-$ NODE_ENV=devnet NODE_APP=api NODE_WATCH=true npm run start
-or
-$ NODE_ENV=devnet NODE_WATCH=true npm run start:api
+$ NODE_ENV=devnet NODE_APP=events-processor NODE_WATCH=true npm run start:events-processor
 
 # development debug mode on devnet
-$ NODE_ENV=devnet NODE_APP=api NODE_DEBUG=true npm run start
-or
-$ NODE_ENV=devnet NODE_DEBUG=true npm run start:api
+$ NODE_ENV=devnet NODE_APP=events-processor NODE_DEBUG=true npm run start:events-processor
 
-# development mode
-$ NODE_ENV=devnet NODE_APP=api npm run start
-or
-$ NODE_ENV=devnet npm run start:api
-
-# production mode
-$ NODE_ENV=mainnet NODE_APP=api npm run start
-or
-$ NODE_ENV=mainnet npm run start:api
-```
-
-## Running the transactions-processor
+## Running the dune-simulator
 
 ```bash
 # development watch mode on devnet
-$ NODE_ENV=devnet NODE_APP=transactions-processor NODE_WATCH=true npm run start
-or
-$ NODE_ENV=devnet NODE_WATCH=true npm run start:transactions-processor
+$ NODE_ENV=devnet NODE_APP=dune-simulator NODE_WATCH=true npm run start:dune-simulator
 
 # development debug mode on devnet
-$ NODE_ENV=devnet NODE_APP=transactions-processor NODE_DEBUG=true npm run start
-or
-$ NODE_ENV=devnet NODE_DEBUG=true npm run start:transactions-processor
-
-# development mode on devnet
-$ NODE_ENV=devnet NODE_APP=transactions-processor npm run start
-or
-$ NODE_ENV=devnet npm run start:transactions-processor
-
-# production mode
-$ NODE_ENV=mainnet npm run start:transactions-processor
+$ NODE_ENV=devnet NODE_APP=dune-simulator NODE_DEBUG=true npm run start:dune-simulator
 ```
-
-## Running the queue-worker
-
-```bash
-# development watch mode on devnet
-$ NODE_ENV=devnet NODE_APP=queue-worker NODE_WATCH=true npm run start
-or
-$ NODE_ENV=devnet NODE_WATCH=true npm run start:queue-worker
-
-# development debug mode on devnet
-$ NODE_ENV=devnet NODE_APP=queue-worker NODE_DEBUG=true npm run start
-or
-$ NODE_ENV=devnet NODE_DEBUG=true npm run start:queue-worker
-
-# development mode on devnet
-$ NODE_ENV=devnet NODE_APP=queue-worker npm run start
-or
-$ NODE_ENV=devnet npm run start:queue-worker
-
-# production mode
-$ NODE_ENV=mainnet npm run start:queue-worker
-```
-
-Requests can be made to http://localhost:3001 for the api. The app will reload when you'll make edits (if opened in watch mode). You will also see any lint errors in the console.​
 
 ### `npm run test`
 
@@ -174,3 +111,30 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+### How to start
+1. start docker containers
+2. start dune-simulator app (if you want to store data locally on your machine)
+3. start events-processor app
+
+### How it works
+- events-processor starts fetching data from index.multiversx.com -> parse the data to 
+the specified format -> store it within a csv-records class manager
+- a cron job from dune-sender.service regularly check if there is any data stored in the csv-records class manager
+and send the data to Dune or Dune-simulator (check .env file and specify where do you want to send the data by 
+choosing between these 2 urls to initialize 'DUNE_API_URL' with: http://localhost:3001/api/v1/table or https://api.dune.com/api/v1/table ,
+if you want to send data to the Dune website, please also provide in .env a valid 'DUNE_NAMESPACE' and a valid 'DUNE_API_KEY' for your Dune account)
+- if the data is sent to the simulator, you can also generate some charts with it 
+(make a get request in browser to the following urls:
+http://localhost:3001/api/v1/table/generate/chart/:table_name/:x_axis/:y_axis/html 
+                            or 
+http://localhost:3001/api/v1/table/generate/chart/:table_name/:x_axis/:y_axis/png 
+
+- table_name -> check collection name from mongoDB
+- x_axis -> document field name for x_axis
+- y_axis -> document field name for y_axis  )
+
+### How to contribute
+If you want to contribute to the project to create your own datasets for any events, add a new CronJob into 
+the processor.service (check libs/services/event-processor/processor.service for some examples) and also create
+a parser service for the events you fetch (check libs/services/src/events for some examples)
