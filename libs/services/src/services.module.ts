@@ -1,7 +1,12 @@
 import { Global, Module } from '@nestjs/common';
 import { DatabaseModule } from '@libs/database';
 import { DynamicModuleUtils } from '@libs/common';
-import { HatomBorrowEventsService, HatomEnterMarketEventsService, LiquidityEventsService } from './events';
+import {
+  BridgeEventsService,
+  HatomBorrowEventsService,
+  HatomEnterMarketEventsService,
+  LiquidityEventsService
+} from './events';
 import { DataService } from './data';
 import { DuneSenderService } from './dune-sender';
 import { CsvRecordsService } from './records';
@@ -24,6 +29,7 @@ import { ProcessorService } from './event-processor/processor.service';
     HatomEnterMarketEventsService,
     EventProcessor,
     ProcessorService,
+    BridgeEventsService,
   ],
   exports: [
     LiquidityEventsService,
@@ -34,6 +40,7 @@ import { ProcessorService } from './event-processor/processor.service';
     HatomEnterMarketEventsService,
     EventProcessor,
     ProcessorService,
+    BridgeEventsService,
   ],
 })
 export class ServicesModule { }
