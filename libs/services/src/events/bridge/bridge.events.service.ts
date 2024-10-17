@@ -7,14 +7,9 @@ import { joinCsvAttributes } from '../../../utils';
 import { TableSchema } from '../../../../../apps/dune-simulator/src/endpoints/dune-simulator/entities';
 // eslint-disable-next-line no-restricted-imports
 import { CsvRecordsService } from '@libs/services/records';
-// import moment from "moment";
-// import BigNumber from "bignumber.js";
-// import { DataService } from "../data";
-// import { CsvRecordsService } from "../records";
-// import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
-//import { joinCsvAttributes } from "libs/services/utils";
 
 class Transaction {
+  batchId: string;
   from: string;
   to: string;
   tokenId: string;
@@ -24,6 +19,7 @@ class Transaction {
   destinationChain: string;
 
   constructor() {
+    this.batchId = '';
     this.from = '';
     this.to = '';
     this.tokenId = '';
@@ -35,8 +31,9 @@ class Transaction {
 
   static headers(): TableSchema[] {
     return [
-      { name: 'from', type: 'varchar' },
-      { name: 'to', type: 'varchar' },
+      { name: 'batch_id', type: 'varchar' },
+      { name: 'from_address', type: 'varchar' },
+      { name: 'to_address', type: 'varchar' },
       { name: 'token_id', type: 'varchar' },
       { name: 'value', type: 'double' },
       { name: 'date', type: 'varchar' },
@@ -47,6 +44,7 @@ class Transaction {
 
   toRecord(): string[] {
     return [
+      this.batchId,
       this.from,
       this.to,
       this.tokenId,
@@ -84,6 +82,7 @@ export class BridgeEventsService {
 
       const eventDate = moment.unix(rawEvent.timestamp);
       const tx = new Transaction();
+      tx.batchId = topics.batch_id;
       tx.from = topics.mvxAddress;
       tx.to = topics.ethAddress;
       tx.tokenId = topics.tokenId;
@@ -111,6 +110,7 @@ export class BridgeEventsService {
       const topics = event.getTopics();
       const eventDate = moment.unix(rawEvent.timestamp);
       const tx = new Transaction();
+      tx.batchId = topics.batch_id;
       tx.from = topics.ethAddress;
       tx.to = topics.mvxAddress;
       tx.tokenId = topics.tokenId;

@@ -7,9 +7,11 @@ export class TransferPerformedEventTopics {
   readonly mvxAddress: Address;
   readonly tokenId: string;
   readonly amount: string;
+  readonly batch_id: string;
 
   constructor(rawTopics: string[]) {
     this.eventName = Buffer.from(rawTopics[0], 'hex').toString();
+    this.batch_id = parseInt(rawTopics[1], 16).toString();
     this.mvxAddress = new Address(Buffer.from(rawTopics[3], 'hex'));
     this.ethAddress = '0x' + rawTopics[2];
     this.tokenId = Buffer.from(rawTopics[4], 'hex').toString();
@@ -23,6 +25,7 @@ export class TransferPerformedEventTopics {
       mvxAddress: this.mvxAddress.bech32(),
       tokenId: this.tokenId,
       amount: this.amount,
+      batch_id: this.batch_id,
     };
   }
 }
@@ -42,9 +45,11 @@ export class SetStatusEventTopics {
   readonly tokenId: string;
   readonly amount: string;
   readonly status: string;
+  readonly batch_id: string;
 
   constructor(rawTopics: string[]) {
     this.eventName = Buffer.from(rawTopics[0], 'hex').toString();
+    this.batch_id = parseInt(rawTopics[7], 16).toString();
     this.mvxAddress = new Address(Buffer.from(rawTopics[2], 'hex'));
     this.ethAddress = '0x' + rawTopics[3];
     this.tokenId = Buffer.from(rawTopics[4], 'hex').toString();
@@ -61,6 +66,7 @@ export class SetStatusEventTopics {
       tokenId: this.tokenId,
       amount: this.amount,
       status: this.status,
+      batch_id: this.batch_id,
     };
   }
 }
