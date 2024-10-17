@@ -4,7 +4,7 @@ import { Locker } from "@multiversx/sdk-nestjs-common";
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { EventLog } from "apps/events-processor/src/processor/entities";
-import { BridgeEventsService } from "../events";
+import { BridgeEventsService } from '../events';
 
 
 @Injectable()
@@ -116,8 +116,7 @@ export class ProcessorService {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleBridgeEvents() {
-    console.log("bridge pending ");
-    await Locker.lock('bridge', async () => {
+    await Locker.lock('bridge-eth-mvx', async () => {
       const eventProcessorOptions = new EventProcessorOptions({
         elasticUrl: 'https://devnet-index.multiversx.com',
         eventIdentifiers: ['batchTransferEsdtToken'],
@@ -127,18 +126,49 @@ export class ProcessorService {
         pageSize: 500,
         getLastProcessedTimestamp: async () => {
           return await this.dynamicCollectionService.getLastProcessedTimestamp(
-              'bridge',
+              'bridge-eth-mvx',
           );
         },
         setLastProcessedTimestamp: async (nonce) => {
           await this.dynamicCollectionService.setLastProcessedTimestamp(
-            'bridge',
+            'bridge-eth-mvx',
             nonce,
           );
         },
         onEventsReceived: async (highestTimestamp, events) => {
           highestTimestamp;
           await this.bridgeService.bridgeEthMvxWebhook(events as EventLog[]);
+        },
+      });
+      const eventProcessor = new EventProcessor();
+      await eventProcessor.start(eventProcessorOptions);
+    });
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async handleBridgeMvxEthEvents() {
+    await Locker.lock('bridge-mvx-eth', async () => {
+      const eventProcessorOptions = new EventProcessorOptions({
+        elasticUrl: 'https://devnet-index.multiversx.com',
+        eventIdentifiers: ['setTransactionBatchStatus'],
+        emitterAddresses: [
+          'erd1qqqqqqqqqqqqqpgqmzegqxzha8wzd6hjhrevh2q4svyn99qypqqqv5wqzm',
+        ],
+        pageSize: 500,
+        getLastProcessedTimestamp: async () => {
+          return await this.dynamicCollectionService.getLastProcessedTimestamp(
+            'bridge-mvx-eth',
+          );
+        },
+        setLastProcessedTimestamp: async (nonce) => {
+          await this.dynamicCollectionService.setLastProcessedTimestamp(
+            'bridge-mvx-eth',
+            nonce,
+          );
+        },
+        onEventsReceived: async (highestTimestamp, events) => {
+          highestTimestamp;
+          await this.bridgeService.bridgeMvxEthWebhook(events as EventLog[]);
         },
       });
       const eventProcessor = new EventProcessor();

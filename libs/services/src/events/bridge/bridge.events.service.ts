@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventLog } from '../../../../../apps/events-processor/src/processor/entities';
 // eslint-disable-next-line no-restricted-imports
-import { TransferPerformedEvent } from '@libs/services/events/bridge/bridge.event';
+import { SetStatusEvent, TransferPerformedEvent } from '@libs/services/events/bridge/bridge.event';
 import moment from 'moment/moment';
 import { joinCsvAttributes } from '../../../utils';
 import { TableSchema } from '../../../../../apps/dune-simulator/src/endpoints/dune-simulator/entities';
@@ -37,7 +37,7 @@ class Transaction {
     return [
       { name: 'from', type: 'varchar' },
       { name: 'to', type: 'varchar' },
-      { name: 'tokenId', type: 'varchar' },
+      { name: 'token_id', type: 'varchar' },
       { name: 'value', type: 'double' },
       { name: 'date', type: 'varchar' },
       { name: 'source_chain', type: 'varchar' },
@@ -53,7 +53,7 @@ class Transaction {
       this.value,
       this.date,
       this.sourceChain,
-      this.destinationChain
+      this.destinationChain,
     ];
   }
 }
@@ -65,9 +65,39 @@ export class BridgeEventsService {
     private readonly csvRecordsService: CsvRecordsService,
   ) {}
 
-  public  bridgeMvxEthWebhook(eventsLog: EventLog[]) {
-    for (const event of eventsLog) {
-      console.log(event);
+  public async bridgeMvxEthWebhook(eventsLog: EventLog[]): Promise<void>{
+    for (const rawEvent of eventsLog) {
+
+      if (rawEvent.topics.length < 5) {
+        continue;
+      }
+
+      const event = new SetStatusEvent(rawEvent);
+      if ( event.name !== "setStatusEvent"){
+        continue;
+      }
+
+      const topics = event.getTopics();
+      if (topics.status !== "Executed"){
+        continue;
+      }
+
+      const eventDate = moment.unix(rawEvent.timestamp);
+      const tx = new Transaction();
+      tx.from = topics.mvxAddress;
+      tx.to = topics.ethAddress;
+      tx.tokenId = topics.tokenId;
+      tx.value = topics.amount;
+      tx.date = eventDate.format('YYYY-MM-DD HH:mm:ss.SSS');
+      tx.sourceChain = "MVX";
+      tx.destinationChain = "ETH";
+      await this.csvRecordsService.pushRecord(
+        `bridge_events`,
+        [
+          joinCsvAttributes(tx.toRecord()),
+        ],
+        Transaction.headers()
+      );
     }
   }
 
@@ -90,7 +120,7 @@ export class BridgeEventsService {
       tx.destinationChain = "MVX";
 
       await this.csvRecordsService.pushRecord(
-        `bridge_eth_mvx_events`,
+        `bridge_events`,
         [
           joinCsvAttributes(tx.toRecord()),
         ],
