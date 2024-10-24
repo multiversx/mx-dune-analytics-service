@@ -55,7 +55,7 @@ export class LiquidityEventsService {
         for (let i = 0; i < diff; i++) {
           this.lastDate[csvFileName].add(1, 'hour').startOf('hour');
           const liquidity = await this.computeLiquidty(this.lastFirstTokenReserves[csvFileName], this.lastSecondTokenReserves[csvFileName], firstTokenId, secondTokenId, this.lastDate[csvFileName]);
-          await this.csvRecordsService.pushRecord(
+          await this.csvRecordsService.pushRecords(
             csvFileName,
             [
               joinCsvAttributes(

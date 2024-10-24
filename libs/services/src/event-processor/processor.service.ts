@@ -5,7 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { EventLog } from "apps/events-processor/src/processor/entities";
 import { HatomBorrowEventsService, HatomEnterMarketEventsService } from "../events";
-
+import { ShutdownAwareHandler } from "@multiversx/sdk-nestjs-common";
 
 @Injectable()
 export class ProcessorService {
@@ -22,7 +22,7 @@ export class ProcessorService {
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['enterMarkets'],
         emitterAddresses: ['erd1qqqqqqqqqqqqqpgqxp28qpnv7rfcmk6qrgxgw5uf2fnp84ar78ssqdk6hr'],
-        pageSize: 500,
+        pageSize: 250,
         getLastProcessedTimestamp: async () => {
           return await this.dynamicCollectionService.getLastProcessedTimestamp('hatom-enter-market');
         },
@@ -36,7 +36,9 @@ export class ProcessorService {
       });
 
       const eventProcessor = new EventProcessor();
-      await eventProcessor.start(eventProcessorOptions);
+      await ShutdownAwareHandler.executeCriticalTask(async () => {
+        await eventProcessor.start(eventProcessorOptions);
+      });
     });
   }
 
@@ -48,7 +50,7 @@ export class ProcessorService {
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['borrow'],
         emitterAddresses: ['erd1qqqqqqqqqqqqqpgqkrgsvct7hfx7ru30mfzk3uy6pxzxn6jj78ss84aldu'],
-        pageSize: 500,
+        pageSize: 250,
         getLastProcessedTimestamp: async () => {
           return await this.dynamicCollectionService.getLastProcessedTimestamp('hatom-borrow-USDT-f8c08c');
         },
@@ -61,7 +63,9 @@ export class ProcessorService {
         },
       });
       const eventProcessor = new EventProcessor();
-      await eventProcessor.start(eventProcessorOptions);
+      await ShutdownAwareHandler.executeCriticalTask(async () => {
+        await eventProcessor.start(eventProcessorOptions);
+      });
     });
   }
 
@@ -72,7 +76,7 @@ export class ProcessorService {
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['borrow'],
         emitterAddresses: ['erd1qqqqqqqqqqqqqpgqvxn0cl35r74tlw2a8d794v795jrzfxyf78sstg8pjr'],
-        pageSize: 500,
+        pageSize: 250,
         getLastProcessedTimestamp: async () => {
           return await this.dynamicCollectionService.getLastProcessedTimestamp('hatom-borrow-USDC-c76f1f');
         },
@@ -85,7 +89,9 @@ export class ProcessorService {
         },
       });
       const eventProcessor = new EventProcessor();
-      await eventProcessor.start(eventProcessorOptions);
+      await ShutdownAwareHandler.executeCriticalTask(async () => {
+        await eventProcessor.start(eventProcessorOptions);
+      });
     });
   }
 
@@ -96,7 +102,7 @@ export class ProcessorService {
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['borrow'],
         emitterAddresses: ['erd1qqqqqqqqqqqqqpgq35qkf34a8svu4r2zmfzuztmeltqclapv78ss5jleq3'],
-        pageSize: 500,
+        pageSize: 250,
         getLastProcessedTimestamp: async () => {
           return await this.dynamicCollectionService.getLastProcessedTimestamp('hatom-borrow-WEGLD-bd4d79');
         },
@@ -109,7 +115,7 @@ export class ProcessorService {
         },
       });
       const eventProcessor = new EventProcessor();
-      await eventProcessor.start(eventProcessorOptions);
+      await ShutdownAwareHandler.executeCriticalTask(() => eventProcessor.start(eventProcessorOptions));
     });
   }
 }

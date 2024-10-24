@@ -6,7 +6,7 @@ import { AppConfigService } from "apps/events-processor/src/config/app-config.se
 import axios from 'axios';
 import { TableSchema } from "apps/dune-simulator/src/endpoints/dune-simulator/entities";
 import { toSnakeCase } from "libs/services/utils";
-
+import { ShutdownAwareHandler } from "@multiversx/sdk-nestjs-common";
 @Injectable()
 export class DuneSenderService {
   private readonly logger = new OriginLogger(DuneSenderService.name);
@@ -21,7 +21,7 @@ export class DuneSenderService {
   async sendCsvRecordsToDune(): Promise<void> {
     const records: Record<string, string[]> = this.csvRecordsService.getRecords();
 
-    await this.sendCsvToDune(records);
+    await ShutdownAwareHandler.executeCriticalTask(() => this.sendCsvToDune(records));
   }
 
   async sendCsvToDune(records: Record<string, string[]>) {
