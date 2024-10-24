@@ -38,6 +38,7 @@ export class HatomEnterMarketEventsService {
   ) { }
 
   public async hatomEnterMarketParser(eventsLog: EventLog[]): Promise<void> {
+    const events = [];
 
     for (const eventLog of eventsLog) {
       const enterMarketEventInHex = '656e7465725f6d61726b65745f6576656e74'; // 'enter_market_event'
@@ -54,25 +55,28 @@ export class HatomEnterMarketEventsService {
         const [valueInEgld, valueInUsd] = await this.convertTokenValue(currentEvent, tokenID, eventDate);
         const tokenPrecision = await this.dataService.getTokenPrecision(tokenID);
 
-        await this.csvRecordsService.pushRecord(
-          `hatom_enter_market_events`,
-          [
-            joinCsvAttributes(
-              eventDate.format('YYYY-MM-DD HH:mm:ss.SSS'),
-              currentEvent.moneyMarket,
-              currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4),
-              tokenID,
-              currentEvent.borrowerAddress,
-              valueInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
-              valueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
-              this.totalValueInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
-              this.totalValueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
-            ),
-          ],
-          this.headers,
+        events.push(
+          joinCsvAttributes(
+            eventDate.format('YYYY-MM-DD HH:mm:ss.SSS'),
+            currentEvent.moneyMarket,
+            currentEvent.amount.shiftedBy(-tokenPrecision).decimalPlaces(4),
+            tokenID,
+            currentEvent.borrowerAddress,
+            valueInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
+            valueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
+            this.totalValueInEgld.shiftedBy(-tokenPrecision).decimalPlaces(4),
+            this.totalValueInUsd.shiftedBy(-tokenPrecision).decimalPlaces(4),
+          ),
         );
+
       }
     }
+
+    await this.csvRecordsService.pushRecords(
+      `hatom_enter_market_events`,
+      events,
+      this.headers,
+    );
   }
 
   decodeTopics(eventLog: EventLog): BorrowEvent {

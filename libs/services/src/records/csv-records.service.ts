@@ -52,7 +52,7 @@ export class CsvRecordsService {
         }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
     }
 
-    async pushRecord(csvFileName: string, data: string[], headers: TableSchema[]) {
+    async pushRecords(csvFileName: string, data: string[], headers: TableSchema[]) {
         csvFileName = toSnakeCase(csvFileName);
         await this.redLockService.using('update-record', csvFileName, async () => {
             if (!this.csvRecords[csvFileName]) {

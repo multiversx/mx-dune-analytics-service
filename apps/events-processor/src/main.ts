@@ -22,13 +22,13 @@ import cookieParser from 'cookie-parser';
 import { PubSubListenerModule } from '@libs/common';
 import { LoggingInterceptor, MetricsService, RequestCpuTimeInterceptor } from '@multiversx/sdk-nestjs-monitoring';
 import { LoggerInitializer } from '@multiversx/sdk-nestjs-common';
-
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/array.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/date.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/number.extensions';
 import '@multiversx/sdk-nestjs-common/lib/utils/extensions/string.extensions';
 import { AppConfigService } from './config/app-config.service';
 import { CommonConfigService } from '@libs/common/config/common.config.service';
+import { ShutdownAwareHandler } from '@multiversx/sdk-nestjs-common';
 
 async function bootstrap() {
   const publicApp = await NestFactory.create(PublicAppModule);
@@ -42,6 +42,8 @@ async function bootstrap() {
   const appConfigService = publicApp.get<AppConfigService>(AppConfigService);
   const commonConfigService = publicApp.get<CommonConfigService>(CommonConfigService);
   const metricsService = privateApp.get<MetricsService>(MetricsService);
+
+  ShutdownAwareHandler.addShutdownHooks(publicApp, privateApp);
 
   const globalInterceptors: NestInterceptor[] = [];
   globalInterceptors.push(new LoggingInterceptor(metricsService));
