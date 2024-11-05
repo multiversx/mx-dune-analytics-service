@@ -3,10 +3,12 @@ import { ApiTags } from "@nestjs/swagger";
 import { CreateTableBody } from "./entities";
 import { DuneSimulatorService } from "@libs/services/dune-simulator";
 import { Response } from "express";
+import { OriginLogger } from "@multiversx/sdk-nestjs-common";
 
 @Controller('/api/v1/table')
 @ApiTags('dune-simulator')
 export class DuneSimulatorController {
+  private readonly logger = new OriginLogger(DuneSimulatorService.name);
   constructor(
     private readonly duneSimulatorService: DuneSimulatorService,
   ) { }
@@ -35,6 +37,7 @@ export class DuneSimulatorController {
   ): Promise<{ 'rows_written': number, 'bytes_written': number }> {
     try {
       const response = await this.duneSimulatorService.insertIntoTable(nameSpace, tableName, body, apiKey, contentType);
+      this.logger.log({ ...response, nameSpace, tableName });
       return response;
     } catch (error) {
       throw error;

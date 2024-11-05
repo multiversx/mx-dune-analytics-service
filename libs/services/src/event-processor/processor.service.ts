@@ -1,23 +1,28 @@
 import { DynamicCollectionRepository } from "@libs/database/collections";
 import { EventProcessor, EventProcessorOptions } from "./event.processor";
-import { Locker } from "@multiversx/sdk-nestjs-common";
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { EventLog } from "apps/events-processor/src/processor/entities";
 import { HatomBorrowEventsService, HatomEnterMarketEventsService } from "../events";
 import { ShutdownAwareHandler } from "@multiversx/sdk-nestjs-common";
+import { RedlockService } from "@multiversx/sdk-nestjs-cache";
 
 @Injectable()
 export class ProcessorService {
+  private readonly keyExpiration = 60000;
+  private readonly maxRetries = 100;
+  private readonly retryInterval = 5000;
+
   constructor(
     private readonly dynamicCollectionService: DynamicCollectionRepository,
+    private readonly redLockService: RedlockService,
     private readonly hatomEnterMarketService: HatomEnterMarketEventsService,
     private readonly hatomBorrowService: HatomBorrowEventsService,
   ) { }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleHatomEnterMarketEvents() {
-    await Locker.lock('hatom-enter-market', async () => {
+    await this.redLockService.using('hatom', 'enter-market', async () => {
       const eventProcessorOptions = new EventProcessorOptions({
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['enterMarkets'],
@@ -39,13 +44,13 @@ export class ProcessorService {
       await ShutdownAwareHandler.executeCriticalTask(async () => {
         await eventProcessor.start(eventProcessorOptions);
       });
-    });
+    }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
   }
 
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleHatomBorrowEventsUSDT() {
-    await Locker.lock('hatom-borrow-USDT-f8c08c', async () => {
+    await this.redLockService.using('hatom', 'borrow-USDT-f8c08c', async () => {
       const eventProcessorOptions = new EventProcessorOptions({
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['borrow'],
@@ -66,12 +71,12 @@ export class ProcessorService {
       await ShutdownAwareHandler.executeCriticalTask(async () => {
         await eventProcessor.start(eventProcessorOptions);
       });
-    });
+    }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleHatomUsdcBorrowEventsUSDC() {
-    await Locker.lock('hatom-borrow-USDC-c76f1f', async () => {
+    await this.redLockService.using('hatom', 'borrow-USDC-c76f1f', async () => {
       const eventProcessorOptions = new EventProcessorOptions({
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['borrow'],
@@ -92,12 +97,12 @@ export class ProcessorService {
       await ShutdownAwareHandler.executeCriticalTask(async () => {
         await eventProcessor.start(eventProcessorOptions);
       });
-    });
+    }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleHatomBorrowEventsWEGLD() {
-    await Locker.lock('hatom-borrow-WEGLD-bd4d79', async () => {
+    await this.redLockService.using('hatom', 'borrow-WEGLD-bd4d79', async () => {
       const eventProcessorOptions = new EventProcessorOptions({
         elasticUrl: 'https://index.multiversx.com',
         eventIdentifiers: ['borrow'],
@@ -116,6 +121,6 @@ export class ProcessorService {
       });
       const eventProcessor = new EventProcessor();
       await ShutdownAwareHandler.executeCriticalTask(() => eventProcessor.start(eventProcessorOptions));
-    });
+    }, { keyExpiration: this.keyExpiration, maxRetries: this.maxRetries, retryInterval: this.retryInterval });
   }
 }
